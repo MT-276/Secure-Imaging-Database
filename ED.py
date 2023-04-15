@@ -10,7 +10,6 @@
 #-------------------------------------------------------------------------------
 
 Debug_mode,Loaded,c = True,False,0
-
 while Loaded != True:
     try:
         from PIL import Image                                       #Importing third-party libraries
@@ -120,8 +119,10 @@ def Convert_to_JPG(path):
     del im4                                                         # Deleting un-used variables to save RAM
     return new_path
 
-def Encode_image(Image_path):
+def Loading_image(Image_path):
     #---------------------- Loading Image ----------------------
+    global Delete,pix,im,m,n,Encoded,start_time,NIP
+
     if '"' in Image_path:
         Image_path = Image_path.replace('"','')
     if "/" in Image_path:
@@ -147,21 +148,25 @@ def Encode_image(Image_path):
         print("The path of the image is invalid, please try again!")
         if Debug_mode == True:
             print("\n",Image_path)
+        sys.exit()
 
     pix = im.load()                                                 # Loading the image
     m,n=im.size                                                     # Obtaining size of image
     Encoded =""
+    NIP = Image_path
 
     del F
+
+def Encode_img():
+    global Delete,pix,im,m,n,Encoded,start_time,NIP
+
     #---------------------- Encoding ----------------------         # Start of Encoding process
 
     print("\nEncoding image...")
-
-
     try:
         F = "muk\muk"
         F = F.replace("muk","")
-        F = Image_path.split(F)
+        F = NIP.split(F)
         F = F[-1]
         F = F.split(".")
         F = F[0]
@@ -172,29 +177,29 @@ def Encode_image(Image_path):
         sys.exit()
 
 
-    try:
-        for i in range(m):                                          # m = no. of rows
-            for j in range(n):                                      # n = no. of columns
-                tup = pix[i,j]                                      # pix[i,j] --> Gets the RGB data of the pixel
-                for k in tup:
-                    E,C = Encode(k)                                 # RGB value encoded via Encode() function
-                    Encoded+=str(E)
-                    Encoded+=str(C)
-                    file.write(Encoded)                             # [NEW] Directly saving to txt file instead of RAM.
-                    Encoded = ''
+    #try:
+    for i in range(m):                                          # m = no. of rows
+        for j in range(n):                                      # n = no. of columns
+            tup = pix[i,j]                                      # pix[i,j] --> Gets the RGB data of the pixel
+            for k in tup:
+                E,C = Encode(k)                                 # RGB value encoded via Encode() function
+                Encoded+=str(E)
+                Encoded+=str(C)
+                file.write(Encoded)                             # Directly saving to txt file instead of RAM.
+                Encoded = ''
 
-        file.write("."+str(m)+"?"+str(n))
-        file.close()
-    except:
-        print("[ERROR] Encoding failed")
-        sys.exit()
+    file.write("."+str(m)+"?"+str(n))
+    file.close()
+##    except:
+##        print("[ERROR] Encoding failed")
+##        sys.exit()
     del m,n,i,j,tup,k,E,C
     print("Image Encoded")
 
     if Delete == True:                                              # Checks if there was a temp JPG image created
-          os.remove(Image_path)                                     # in case the image was of a different format
+          os.remove(NIP)                                     # in case the image was of a different format
     del Delete,F,Encoded,file                                       # and deletes it.
-    Tell_time(start_time)
+    return Tell_time(start_time)
 
 def Decode_file(Encoded_file_name):
 
@@ -314,4 +319,4 @@ def Tell_time(start_time):
     ao = (end_time - start_time)//1
     if ao>=60:
         ao = str(ao//60) +" Min " + str(ao%60)
-    print("\nTime for execution : ",int(ao), "Sec")                 # Calculates and prints the time taken for execution of the program
+    return ("\nTime for execution : "+str(int(ao))+ " Sec")                 # Calculates and prints the time taken for execution of the program

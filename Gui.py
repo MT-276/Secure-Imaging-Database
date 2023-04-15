@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Name:        Gui.py
+# Name:        GUI-main.py
 #
 # Author:      MS Productions
 #
@@ -8,24 +8,43 @@
 #
 # Lead Dev : Meit Sant
 #-------------------------------------------------------------------------------
-
+import tkinter as tk
 from tkinter import *
 from tkinter.filedialog import askopenfilename
 import tkinter.messagebox as mb
-from tkinter.scrolledtext import ScrolledText
+import tkinter.scrolledtext as st
 import ED
 
 global mode
-
-
 
 
 def dummy_cmd():
     if not 'filename' in globals():
         mb.showerror("ERROR","You have not yet entered the file path.")
         return None
-    ED.Encode_image(filename)
+    #Image_path = r'we'
 
+    log_widget = st.ScrolledText(Output_box,height=10, width=80,font=Font,background="black",fg="White")
+    log_widget.place(x=0,y=30)
+
+
+    log_widget.insert(tk.INSERT,"Loading image...")
+    try:
+        ED.Loading_image(filename)
+        log_widget.insert(tk.INSERT,"\nEncoding image...")
+        try:
+            tme = ED.Encode_img()
+            log_widget.insert(tk.INSERT,"\nImage Encoded")
+            log_widget.insert(tk.INSERT,tme)
+        except:
+            log_widget.insert(tk.INSERT,"\nEncoding failed")
+    except:
+        log_widget.insert(tk.INSERT,"\n[ERROR] The path of the image is invalid.")
+
+    #Todo2 Solve the issue where it hangs if it is a big image
+
+
+    log_widget.configure(state ='disabled')
 
 
 def choose_file():
@@ -44,16 +63,12 @@ def Upload_gui_load():
     #Ins.destroy()
 
     Frame(Main_win,background=Main_window_colour,height=500,width=800).place(x=270,y=210)
+    global Output_box
 
     Output_box = Frame(Main_win,background="#7476A7")
     Output_box.place(x=300, y=375, relheight=0.3, relwidth=0.5)
 
     Label(Output_box,text= 'Console Output',font=Font,background="#7476A7").place(x=0,y=0)
-
-    global log_widget
-
-    log_widget = ScrolledText(Output_box, height=10, width=80, font=("consolas", "8", "normal")).place(x=0,y=30)
-
 
     Label(Idea_panel, text=Insight_text, font=("Bahnschrift Light",12),fg="white",bg="#282A39").place(x=20, y=20,width=620)
     Label(Idea_panel, text="Insight", font=("Bahnschrift Bold",14),fg="white",bg="#282A39").place(x=20, y=10)
@@ -115,4 +130,5 @@ Label(Side_panel, text="Secure Imaging Database", font=("Bahnschrift Light",12),
 Button(Side_panel, text='Upload Image', font=Font,fg="white",bg=Side_panel_colour, height = 2,width=15,command = Upload_gui_load).place(x=40, rely=0.23)
 Button(Side_panel, text='Download Image', font=Font,fg="white",bg=Side_panel_colour, height = 2,width=15,command = Download_gui_load).place(x=40, rely=0.40)
                                                                                 #^ Upload and Download options
+
 Main_win.mainloop()
