@@ -77,6 +77,9 @@ def Enc_cmd():
     except:
         log_widget.insert(tk.INSERT,"\n[ERROR] The path of the image is invalid.")
 
+    Button(Main_win, text='Open Image', font=Font,fg="white",bg=Main_window_colour, height = 2,width=15).place(x=810, y=500)
+
+
     #Todo2 Solve the issue where it hangs if it is a big image
 
 
