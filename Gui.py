@@ -13,10 +13,15 @@ from tkinter import *
 from tkinter.filedialog import askopenfilename
 import tkinter.messagebox as mb
 import tkinter.scrolledtext as st
-import ED
+import ED,os,sys,time,sqlite3
 
 global mode
 
+connector = sqlite3.connect('Image_database.db')
+cursor = connector.cursor()
+connector.execute(
+"CREATE TABLE IF NOT EXISTS img_database (Img_ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, ImageNAME TEXT, DATA TEXT)"
+)
 
 def choose_file():
     global filename
@@ -27,9 +32,13 @@ def choose_file():
             mb.showerror("ERROR","The file type is invalid. Only jpg and PNG images are supported")
         else:
             Loaded = True
-    oup_str = "\nFile chosen - '" + filename+"'"
-    log_widget.insert(tk.INSERT,oup_str)
-    del oup_str
+##    filename = r"C:/Users/meitv/OneDrive/Desktop/tmp.png"
+    log_widget.delete(1.0,END)
+    dte = ED.Give_time_and_date()
+    Tmp_str =dte+" >> File chosen - '" + filename+"'"
+    log_widget.insert(tk.INSERT,Tmp_str)
+
+    del Tmp_str
 
 
 def Upload_gui_load():
@@ -46,9 +55,9 @@ def Upload_gui_load():
     global Output_box,log_widget
 
     Output_box = Frame(Main_win,background="#7476A7")
-    Output_box.place(x=300, y=375, relheight=0.3, relwidth=0.5)
+    Output_box.place(x=300, y=375, relheight=0.308, relwidth=0.5)
 
-    log_widget = st.ScrolledText(Output_box,height=10, width=80,font=Font,background="black",fg="White")
+    log_widget = st.ScrolledText(Output_box,height=7.5, width=56,font=Font,background="black",fg="White")
     log_widget.place(x=0,y=30)
 
     Label(Output_box,text= 'Console Output',font=Font,background="#7476A7").place(x=0,y=0)
@@ -60,30 +69,69 @@ def Upload_gui_load():
     Button(Main_win, text='Encode!',font=Font,fg="white",bg=Main_window_colour,command = Enc_cmd, height = 2,width=15).place(x=800, y=250)
 
 def Enc_cmd():
+    log_widget.delete(2.0,END)
     if not 'filename' in globals():
         mb.showerror("ERROR","You have not yet entered the file path.")
         return None
+    dte = ED.Give_time_and_date()
+    Tmp_str ="\n"+dte+" >> Loading image..."
+    log_widget.insert(tk.INSERT,Tmp_str)
 
-    log_widget.insert(tk.INSERT,"\nLoading image...")
     try:
         ED.Loading_image(filename)
-        log_widget.insert(tk.INSERT,"\nEncoding image...")
-        try:
-            tme = ED.Encode_img()
-            log_widget.insert(tk.INSERT,"\nImage Encoded")
-            log_widget.insert(tk.INSERT,tme)
-        except:
-            log_widget.insert(tk.INSERT,"\n[ERROR] Encoding failed")
-    except:
-        log_widget.insert(tk.INSERT,"\n[ERROR] The path of the image is invalid.")
 
-    Button(Main_win, text='Open Image', font=Font,fg="white",bg=Main_window_colour, height = 2,width=15).place(x=810, y=500)
+        dte = ED.Give_time_and_date()
+        Tmp_str ="\n"+dte+" >> Encoding image..."
+        log_widget.insert(tk.INSERT,Tmp_str)
+        try:
+            tme,Img_name,Img_data = ED.Encode_img()
+
+            dte = ED.Give_time_and_date()
+            Tmp_str ="\n"+dte+" >> Image Encoded"
+            log_widget.insert(tk.INSERT,Tmp_str)
+
+            dte = ED.Give_time_and_date()
+            Extra_ = " >>"+tme
+            Tmp_str ="\n"+dte+Extra_
+            log_widget.insert(tk.INSERT,Tmp_str)
+
+            dte = ED.Give_time_and_date()
+            Tmp_str ="\n"+dte+" >> Saving data to database..."
+            log_widget.insert(tk.INSERT,Tmp_str)
+
+            try:
+                connector.execute(
+               'INSERT INTO Img_database (ImageNAME, DATA) VALUES (?,?)', (Img_name,Img_data)
+               )
+                connector.commit()
+
+                dte = ED.Give_time_and_date()
+                Tmp_str ="\n"+dte+" >> Saved successfully"
+                log_widget.insert(tk.INSERT,Tmp_str)
+            except:
+                dte = ED.Give_time_and_date()
+                Tmp_str ="\n"+dte+" >> [ERROR] Save Failed"
+                log_widget.insert(tk.INSERT,Tmp_str)
+        except:
+            dte = ED.Give_time_and_date()
+            Tmp_str ="\n"+dte+" >> [ERROR] Encoding failed"
+            log_widget.insert(tk.INSERT,Tmp_str)
+
+
+    except:
+        dte = ED.Give_time_and_date()
+        Tmp_str ="\n"+dte+" >> [ERROR] The path of the image is invalid."
+        log_widget.insert(tk.INSERT,Tmp_str)
+
+    del Tmp_str,dte
+
+    #Button(Main_win, text='Open File Location', font=Font,fg="white",bg=Main_window_colour, height = 2,width=15,command = lambda: os.startfile(filename)).place(x=810, y=500)
 
 
     #Todo2 Solve the issue where it hangs if it is a big image
 
 
-    log_widget.configure(state ='disabled')
+    #log_widget.configure(state ='disabled')
 
 def Download_gui_load():
 
@@ -115,7 +163,7 @@ Side_panel_colour ='#1C2028'
 Font = ("Bahnschrift Bold",12)
 
 Main_win.title("Secure Imaging Database")                                       # Main window config
-Main_win.geometry('1000x600')
+Main_win.geometry('1010x600')
 Main_win.configure(bg=Main_window_colour)
 
 Side_panel = Frame(Main_win, background=Side_panel_colour)                      # Side panel config

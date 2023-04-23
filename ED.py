@@ -171,35 +171,35 @@ def Encode_img():
         F = F.split(".")
         F = F[0]
         F = "Encoded_"+F+".txt"                                 # Creates the file where the encoding is going
-        file = open(F, 'w')                                         # to be stored while encoding.
+        Img_name = F                                         # to be stored while encoding.
     except:
         print("[ERROR] Could not save encoding. Check Disk space")
         sys.exit()
 
+    Img_data = ''
+    try:
+        for i in range(m):                                          # m = no. of rows
+            for j in range(n):                                      # n = no. of columns
+                tup = pix[i,j]                                      # pix[i,j] --> Gets the RGB data of the pixel
+                for k in tup:
+                    E,C = Encode(k)                                 # RGB value encoded via Encode() function
+                    Encoded+=str(E)
+                    Encoded+=str(C)
+                    Img_data+=Encoded                        # Directly saving to txt file instead of RAM.
+                    Encoded = ''
 
-    #try:
-    for i in range(m):                                          # m = no. of rows
-        for j in range(n):                                      # n = no. of columns
-            tup = pix[i,j]                                      # pix[i,j] --> Gets the RGB data of the pixel
-            for k in tup:
-                E,C = Encode(k)                                 # RGB value encoded via Encode() function
-                Encoded+=str(E)
-                Encoded+=str(C)
-                file.write(Encoded)                             # Directly saving to txt file instead of RAM.
-                Encoded = ''
+        Img_data+=("."+str(m)+"?"+str(n))
 
-    file.write("."+str(m)+"?"+str(n))
-    file.close()
-##    except:
-##        print("[ERROR] Encoding failed")
-##        sys.exit()
+    except:
+        print("[ERROR] Encoding failed")
+        sys.exit()
     del m,n,i,j,tup,k,E,C
     print("Image Encoded")
 
     if Delete == True:                                              # Checks if there was a temp JPG image created
           os.remove(NIP)                                     # in case the image was of a different format
-    del Delete,F,Encoded,file                                       # and deletes it.
-    return Tell_time(start_time)
+    del Delete,F,Encoded                                       # and deletes it.
+    return Tell_time(start_time),Img_name,Img_data
 
 def Decode_file(Encoded_file_name):
 
@@ -319,4 +319,14 @@ def Tell_time(start_time):
     ao = (end_time - start_time)//1
     if ao>=60:
         ao = str(ao//60) +" Min " + str(ao%60)
-    return ("\nTime for execution : "+str(int(ao))+ " Sec")                 # Calculates and prints the time taken for execution of the program
+    return (" Time for execution : "+str(int(ao))+ " Sec")                 # Calculates and prints the time taken for execution of the program
+
+def Give_time_and_date():
+    from datetime import date
+    from datetime import datetime
+    now = datetime.now()
+    current_time = now.strftime("%H:%M:%S")
+    today = date.today()
+    dte = today.strftime("%b-%d-%Y")
+    DT = dte+" "+current_time
+    return DT
