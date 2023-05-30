@@ -9,6 +9,7 @@
 # Lead Dev : Meit Sant
 #-------------------------------------------------------------------------------
 import tkinter as tk
+from tkinter import ttk
 from tkinter import *
 from tkinter.filedialog import askopenfilename
 import tkinter.messagebox as mb
@@ -40,6 +41,23 @@ def choose_file():
 
     del Tmp_str
 
+def display_records():
+   tree.delete(*tree.get_children())
+   curr = connector.execute('SELECT * FROM img_database')
+   data = curr.fetchall()
+   for records in data:
+       tree.insert('', END, values=records)
+
+def Download_record():
+   if not tree.selection():
+       mb.showerror('ERROR', 'Please select an item from the database')
+   else:
+       current_item = tree.focus()
+       values = tree.item(current_item)
+       selection = values["values"]
+       selection = selection[2]
+       ED.Decode_data(selection)
+       mb.showerror('SUCCESS', 'Image saved successfully')
 
 def Upload_gui_load():
 
@@ -51,7 +69,7 @@ def Upload_gui_load():
     #Ins_txt.destroy()
     #Ins.destroy()
 
-    Frame(Main_win,background=Main_window_colour,height=500,width=800).place(x=270,y=210)
+    Frame(Main_win,background=Main_window_colour).place(relx=0.23,rely=0.34,relheight=1,relwidth=1)
     global Output_box,log_widget
 
     Output_box = Frame(Main_win,background="#7476A7")
@@ -136,21 +154,36 @@ def Enc_cmd():
 def Download_gui_load():
 
     Insight_text = """
-    Please enter the name of your desired image. Upon selecting your
+    Please select the name of your desired image. Upon selecting your
     image, it will decode your image and save it in your local downloads folder.
     """
     Ins_txt = Label(Idea_panel, text=Insight_text, font=("Bahnschrift Light",12),fg="white",bg="#282A39").place(x=20, y=20,width=620)
     Ins = Label(Idea_panel, text="Insight", font=("Bahnschrift Bold",14),fg="white",bg="#282A39").place(x=20, y=10)
 
-    Frame(Main_win,background=Main_window_colour,height=500,width=800).place(x=270,y=210)
+    Frame(Main_win,background=Main_window_colour).place(relx=0.23,rely=0.34,relheight=1,relwidth=1)
 
-    Button(Main_win, text='Download Image', font=Font,fg="white",bg=Main_window_colour, height = 2,width=40).place(x=600, y=500)
+    ''' Search Function (Incomplete)
+    Button(Main_win, text='Search', font=Font,fg="white",bg=Main_window_colour,command = display_records).place(relx=0.8,y=230,relheight=0.06,relwidth=0.1)
 
     Key_word = ""
-    Entry(Main_win, width=30, textvariable=Key_word, font=("Bahnschrift Light",18)).place(x=270, y=250)
-    Button(Main_win, text='Search', font=("Bahnschrift Bold",15),fg="white",bg=Main_window_colour, height = 1,width=10).place(x=800, y=250)
+    Entry(Main_win, textvariable=Key_word, font=("Bahnschrift Light",18)).place(relx=0.26,y=230,relheight=0.06,relwidth=0.4)
+    '''
+    Button(Main_win, text='Download Image', font=Font,fg="white",bg=Main_window_colour,command= Download_record).place(relx=0.8,rely = 0.89,relheight=0.1,relwidth=0.18)
 
+    global tree
+    tree = ttk.Treeview(Main_win, height=100, selectmode=BROWSE,
+                   columns=('Sr_No',"Name"))
+    X_scroller = Scrollbar(tree, orient=HORIZONTAL, command=tree.xview)
+    X_scroller.pack(side=BOTTOM, fill=X)
+    tree.config(xscrollcommand=X_scroller.set)
+    tree.heading('Sr_No', text='Sr_No', anchor=W)
+    tree.heading('Name', text='Name', anchor=CENTER)
+    tree.column('#0', width=0, stretch=NO)
+    tree.column('#1', width=40, stretch=NO)
+    tree.place(relx=0.26,y=280,relheight=0.37,relwidth=0.6)
+    display_records()
 
+    #Todo Make everything scalable
 Insight_text = """
     Secure Imaging database is a project inspired by Google Photos. It uses a custom
     encoding and decoding algorithem to secure your image files.
@@ -167,7 +200,7 @@ Main_win.geometry('1010x600')
 Main_win.configure(bg=Main_window_colour)
 
 Side_panel = Frame(Main_win, background=Side_panel_colour)                      # Side panel config
-Side_panel.place(x=0, y=0, relheight=1, relwidth=0.25)
+Side_panel.place(x=0, y=0, relheight=1, relwidth=0.23)
 
 Shadow = Frame(Main_win,background="#1C2028")
 Shadow.place(x=257, y=70, relheight=0.21, relwidth=0.675)
@@ -186,5 +219,7 @@ Label(Side_panel, text="Secure Imaging Database", font=("Bahnschrift Light",12),
 Button(Side_panel, text='Upload Image', font=Font,fg="white",bg=Side_panel_colour, height = 2,width=15,command = Upload_gui_load).place(x=40, rely=0.23)
 Button(Side_panel, text='Download Image', font=Font,fg="white",bg=Side_panel_colour, height = 2,width=15,command = Download_gui_load).place(x=40, rely=0.40)
                                                                                 #^ Upload and Download options
+
+
 
 Main_win.mainloop()

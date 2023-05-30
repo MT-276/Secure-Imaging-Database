@@ -170,8 +170,8 @@ def Encode_img():
         F = F[-1]
         F = F.split(".")
         F = F[0]
-        F = "Encoded_"+F+".txt"                                 # Creates the file where the encoding is going
-        Img_name = F                                         # to be stored while encoding.
+        F = "Encoded_"+F+".txt"
+        Img_name = F
     except:
         print("[ERROR] Could not save encoding. Check Disk space")
         sys.exit()
@@ -185,7 +185,7 @@ def Encode_img():
                     E,C = Encode(k)                                 # RGB value encoded via Encode() function
                     Encoded+=str(E)
                     Encoded+=str(C)
-                    Img_data+=Encoded                        # Directly saving to txt file instead of RAM.
+                    Img_data+=Encoded
                     Encoded = ''
 
         Img_data+=("."+str(m)+"?"+str(n))
@@ -197,47 +197,19 @@ def Encode_img():
     print("Image Encoded")
 
     if Delete == True:                                              # Checks if there was a temp JPG image created
-          os.remove(NIP)                                     # in case the image was of a different format
-    del Delete,F,Encoded                                       # and deletes it.
-    return Tell_time(start_time),Img_name,Img_data
+          os.remove(NIP)                                            # in case the image was of a different format
+    del Delete,F,Encoded                                            # and deletes it.
+    #Todo Fix the name issue. [Context - It makes the path of the thing as the name]
+    return Tell_time(start_time),NIP,Img_data
 
-def Decode_file(Encoded_file_name):
+def Decode_data(Encoded_inp):
 
+    start_time = time.perf_counter ()
     #---------------------- Decode Loading ----------------------
     Decoded_lst = []
     Decoded_lst1 = []
     pixel_data = []
     Encoded_str = ''
-
-    Loaded = False
-    c=0
-    while Loaded != True:
-        try:
-            F = "muk\muk"
-            F = F.replace("muk","")
-            F = Encoded_file_name.split(F)
-            F = F[-1]
-            F = F.split(".")
-            F = F[-1]
-            if F != "txt":                                          # Checks if the file format is correct or not
-                print("[ERROR] File format incorrect")
-                sys.exit()
-
-            with open(Encoded_file_name, 'r') as file:
-                Encoded_inp = file.read()                           # Loades file contents in a variable [Encoded_inp]
-            Loaded = True
-            start_time = time.perf_counter ()                       # Starts recording time for execution
-
-        except:
-            print("[ERROR] File path incorrect. Please try again")
-            if Debug_mode == True:
-                print(Encoded_file_name)
-        if c == 5:
-            print("The path of the image is invalid")
-            sys.exit()
-        c+=1
-
-    del F,c,Loaded                                                  # Deleting un-used variables to save RAM
 
     #---------------------- Decoding ----------------------
     print("\nDecoding...")
@@ -304,22 +276,25 @@ def Decode_file(Encoded_file_name):
 
     #---------------------- Saving Image ----------------------
     print("\nSaving Image...")
-
+    path = './Pictures'
+    os.mkdir(path)
+    #Todo Make the name of the image different everytime.
     try:
-        image.save('Decoded_picture.jpg')                           # Saves the generated image in the same dir, where the program is being executed
+        image.save('Pictures\Decoded_picture.jpg')                           # Saves the generated image in the downloads
     except:
         print("[ERROR] Image was not saved. Check Disk space")
         sys.exit()
     print("Image saved succesfully")
-    os.startfile('Decoded_picture.jpg')                            # Opens the saved image
+    os.startfile('Pictures\Decoded_picture.jpg')                             # Opens the saved image
     Tell_time(start_time)
+    #Todo Return function with all the necesary things for console
 
 def Tell_time(start_time):
     end_time = time.perf_counter ()
     ao = (end_time - start_time)//1
     if ao>=60:
         ao = str(ao//60) +" Min " + str(ao%60)
-    return (" Time for execution : "+str(int(ao))+ " Sec")                 # Calculates and prints the time taken for execution of the program
+    return (" Time for execution : "+str(int(ao))+ " Sec")          # Calculates and prints the time taken for execution of the program
 
 def Give_time_and_date():
     from datetime import date
