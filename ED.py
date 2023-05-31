@@ -163,20 +163,15 @@ def Encode_img():
     #---------------------- Encoding ----------------------         # Start of Encoding process
 
     print("\nEncoding image...")
-    try:
-        F = "muk\muk"
-        F = F.replace("muk","")
-        F = NIP.split(F)
-        F = F[-1]
-        F = F.split(".")
-        F = F[0]
-        F = "Encoded_"+F+".txt"
-        Img_name = F
-    except:
-        print("[ERROR] Could not save encoding. Check Disk space")
-        sys.exit()
-
+    F = "muk\muk"
+    F = F.replace("muk","")
+    F = NIP.split(F)
+    F = F[-1]
+    F = F.split(".")
+    F = F[0]
+    Img_name = F
     Img_data = ''
+
     try:
         for i in range(m):                                          # m = no. of rows
             for j in range(n):                                      # n = no. of columns
@@ -199,10 +194,9 @@ def Encode_img():
     if Delete == True:                                              # Checks if there was a temp JPG image created
           os.remove(NIP)                                            # in case the image was of a different format
     del Delete,F,Encoded                                            # and deletes it.
-    #Todo Fix the name issue. [Context - It makes the path of the thing as the name]
-    return Tell_time(start_time),NIP,Img_data
+    return Tell_time(start_time),Img_name,Img_data
 
-def Decode_data(Encoded_inp):
+def Decode_data(Img_name,Encoded_inp):
 
     start_time = time.perf_counter ()
     #---------------------- Decode Loading ----------------------
@@ -276,16 +270,18 @@ def Decode_data(Encoded_inp):
 
     #---------------------- Saving Image ----------------------
     print("\nSaving Image...")
-    path = './Pictures'
-    os.mkdir(path)
-    #Todo Make the name of the image different everytime.
     try:
-        image.save('Pictures\Decoded_picture.jpg')                           # Saves the generated image in the downloads
+        path = './Pictures'
+        os.mkdir(path)
     except:
-        print("[ERROR] Image was not saved. Check Disk space")
+        pass
+    try:
+        image.save('Pictures/{}.png'.format(Img_name))                           # Saves the generated image in the downloads
+    except:
+        print("[ERROR] Image was not saved.")
         sys.exit()
     print("Image saved succesfully")
-    os.startfile('Pictures\Decoded_picture.jpg')                             # Opens the saved image
+    os.startfile('Pictures/{}.png'.format(Img_name))                             # Opens the saved image
     Tell_time(start_time)
     #Todo Return function with all the necesary things for console
 

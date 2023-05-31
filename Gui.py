@@ -55,9 +55,29 @@ def Download_record():
        current_item = tree.focus()
        values = tree.item(current_item)
        selection = values["values"]
-       selection = selection[2]
-       ED.Decode_data(selection)
-       mb.showerror('SUCCESS', 'Image saved successfully')
+       Data = selection[2]
+       Img_name = selection[1]
+       del selection
+       ED.Decode_data(Img_name,Data)
+       try:
+        print('placeholder')
+        mb.showerror('SUCCESS', 'Image saved successfully')
+       except:
+        mb.showerror('ERROR', 'Error occured while decoding image. Please try again')
+
+def Delete_Record():
+    #Todo Add this feature [Delete_Record]
+    """
+    Currently not in use
+    """
+    mb.showinfo("Delete Record","Feature still under development !")
+
+def Clear_all():
+    #Todo Add this feature [Clear_all]
+    """
+    Currently not in use
+    """
+    mb.showinfo("Clear all","Feature still under development !")
 
 def Upload_gui_load():
 
@@ -169,6 +189,9 @@ def Download_gui_load():
     Entry(Main_win, textvariable=Key_word, font=("Bahnschrift Light",18)).place(relx=0.26,y=230,relheight=0.06,relwidth=0.4)
     '''
     Button(Main_win, text='Download Image', font=Font,fg="white",bg=Main_window_colour,command= Download_record).place(relx=0.8,rely = 0.89,relheight=0.1,relwidth=0.18)
+    Button(Main_win, text='Delete Record', font=Font,fg="white",bg=Main_window_colour,command= Delete_Record).place(relx=0.6,rely = 0.89,relheight=0.1,relwidth=0.18)
+    Button(Main_win, text='Clear All', font=Font,fg="white",bg=Main_window_colour,command= Clear_all).place(relx=0.4,rely = 0.89,relheight=0.1,relwidth=0.18)
+
 
     global tree
     tree = ttk.Treeview(Main_win, height=100, selectmode=BROWSE,
