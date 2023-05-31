@@ -281,9 +281,8 @@ def Decode_data(Img_name,Encoded_inp):
         print("[ERROR] Image was not saved.")
         sys.exit()
     print("Image saved succesfully")
-    os.startfile('Pictures/{}.png'.format(Img_name))                             # Opens the saved image
+    #os.startfile('Pictures/{}.png'.format(Img_name))                            # Opens the saved image
     Tell_time(start_time)
-    #Todo Return function with all the necesary things for console
 
 def Tell_time(start_time):
     end_time = time.perf_counter ()
