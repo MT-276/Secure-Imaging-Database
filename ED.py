@@ -9,7 +9,7 @@
 # Lead Dev : Meit Sant
 #-------------------------------------------------------------------------------
 
-Debug_mode,Loaded,c = True,False,0
+Debug_mode,Loaded,c = False,False,0
 while Loaded != True:
     try:
         from PIL import Image                                       #Importing third-party libraries
@@ -105,8 +105,7 @@ def Decode(Hashed_str):
     return decoded                                                  # Returns decoded colour value
 
 def Convert_to_JPG(path):
-    F = "muk\muk"
-    F = F.replace("muk","")
+    F = "\\"
     F = path.split(F)
     F = F[-1]
     F = F.split(".")
@@ -116,7 +115,7 @@ def Convert_to_JPG(path):
     im4 = im.convert('RGB')                                         # Converting to jpg format
     im4.save(new_path)                                              # Saving temp jpg image
 
-    del im4                                                         # Deleting un-used variables to save RAM
+    del im4,F                                                        # Deleting un-used variables to save RAM
     return new_path
 
 def Loading_image(Image_path):
@@ -126,14 +125,10 @@ def Loading_image(Image_path):
     if '"' in Image_path:
         Image_path = Image_path.replace('"','')
     if "/" in Image_path:
-        F="muk\muk"
-        F=F.replace('muk','')
-        Image_path = Image_path.replace("/",F)
+        Image_path = Image_path.replace("/","\\")
     try:
 
-        F = "muk\muk"
-        F = F.replace("muk","")
-        F = Image_path.split(F)
+        F = Image_path.split("\\")
         F = F[-1]
         F = F.split(".")
         F = F[1]
@@ -163,9 +158,7 @@ def Encode_img():
     #---------------------- Encoding ----------------------         # Start of Encoding process
 
     print("\nEncoding image...")
-    F = "muk\muk"
-    F = F.replace("muk","")
-    F = NIP.split(F)
+    F = NIP.split("\\")
     F = F[-1]
     F = F.split(".")
     F = F[0]
@@ -197,9 +190,9 @@ def Encode_img():
     return Tell_time(start_time),Img_name,Img_data
 
 def Decode_data(Img_name,Encoded_inp):
-
-    start_time = time.perf_counter ()
     #---------------------- Decode Loading ----------------------
+
+    start_time = time.perf_counter ()                               # Starts the timer for processing
     Decoded_lst = []
     Decoded_lst1 = []
     pixel_data = []
@@ -211,35 +204,27 @@ def Decode_data(Img_name,Encoded_inp):
     c=1
     try:
         pixel_encoding = Encoded_inp.split(".")                     # The encoding has two parts:
-
-
         for Char in pixel_encoding[0]:                              # Seperates chunks of encoded pixel data
             Encoded_str+=Char
             if c % 4 == 0:
                 Decoded_lst.append(Decode(Encoded_str))             # Decodes encoded pixel data
                 Encoded_str=''
             c+=1
-
-
         c=1
-
         for Char in Decoded_lst:
             Decoded_lst1.append(Char)
             if c % 3 == 0:
                 R = int(Decoded_lst1[0])
                 G = int(Decoded_lst1[1])
                 B = int(Decoded_lst1[2])
-                #A = int(Decoded_lst1[3])
-                #print("(",R,",",G,",",B,",",A,")")
                 pixel_data.append((R,G,B))                          # Joins all the un-organised pixel data
                 Decoded_lst1 = []
             c+=1
-
         del Decoded_lst,Encoded_str                                 # Deleting un-used variables to save RAM
 
         Dimension_lst = Encoded_inp.split(".")[1]
         Dimension_lst = Dimension_lst.split("?")
-        m,n = int(Dimension_lst[0]),int(Dimension_lst[1])           # Gets dimension data from Encoded_inp
+        m,n = int(Dimension_lst[0]),int(Dimension_lst[1])           # Gets dimensions data from Encoded_inp
     except:
         print("\n[ERROR] Decryption Failed. Please verify file contents")
         sys.exit()
@@ -252,36 +237,36 @@ def Decode_data(Img_name,Encoded_inp):
 
     try:
         image = Image.new('RGB', (m, n))                            # Creates a new image
-
         index = -1
         for x in range(m):
             for y in range(n):
                 index += 1
-
                 color = pixel_data[index]
                 image.putpixel((x, y), color)                       # Assigns colour to pixel using xy co-ordinate data
         print("Image Generated succesfully")
     except:
         print("\n[ERROR] Image Generation Failed")
         if Debug_mode == True:
-            print("\n",m,"x",n,"\n",index,"\n",Encoded_file_name)
+            print("\n",m,"x",n,"\n",index,"\n",Img_name)
         sys.exit()
 
+    del index,color,m,n                                             # Deleting un-used variables to save RAM
 
     #---------------------- Saving Image ----------------------
     print("\nSaving Image...")
     try:
-        path = './Pictures'
-        os.mkdir(path)
+        path = './Pictures'                                         # Creates a new directory in the same place as the program
+        os.mkdir(path)                                              # If the the creation of the new dir fails, it means that it is already there.
     except:
         pass
+
     try:
-        image.save('Pictures/{}.png'.format(Img_name))                           # Saves the generated image in the downloads
+        image.save('Pictures/{}.png'.format(Img_name))              # Saves the generated image in the downloads
     except:
         print("[ERROR] Image was not saved.")
         sys.exit()
     print("Image saved succesfully")
-    #os.startfile('Pictures/{}.png'.format(Img_name))                            # Opens the saved image
+    #os.startfile('Pictures/{}.png'.format(Img_name))               # Opens the saved image
     Tell_time(start_time)
 
 def Tell_time(start_time):
@@ -291,7 +276,7 @@ def Tell_time(start_time):
         ao = str(ao//60) +" Min " + str(ao%60)
     return (" Time for execution : "+str(int(ao))+ " Sec")          # Calculates and prints the time taken for execution of the program
 
-def Give_time_and_date():
+def Give_time_and_date():                                           # As name suggests, it returns the current time and date for the console output
     from datetime import date
     from datetime import datetime
     now = datetime.now()
@@ -299,4 +284,4 @@ def Give_time_and_date():
     today = date.today()
     dte = today.strftime("%b-%d-%Y")
     DT = dte+" "+current_time
-    return DT
+    return DT                                                       # Format : Month-Date-Year Hour(24hr):Minute:Seconds
