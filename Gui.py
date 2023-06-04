@@ -14,6 +14,7 @@ from tkinter import *
 from tkinter.filedialog import askopenfilename
 import tkinter.messagebox as mb
 import tkinter.scrolledtext as st
+from threading import Thread
 import ED,os,sys,time,sqlite3
 
 global mode
@@ -49,18 +50,18 @@ def Download_record():
    if not tree.selection():
        mb.showerror('ERROR', 'Please select an item from the database')
    else:
+       Thread(target=lambda : mb.showinfo('Info','The image will be downloaded after decode is performed.')).start()
        current_item = tree.focus()
        values = tree.item(current_item)
        selection = values["values"]
        Data = selection[2]
        Img_name = selection[1]
        del selection
-       ED.Decode_data(Img_name,Data)
        try:
-        print('placeholder')
-        mb.showerror('SUCCESS', 'Image saved successfully')
+        ED.Decode_data(Img_name,Data)
+        mb.showinfo('Info', 'Image saved successfully')
        except:
-        mb.showerror('ERROR', 'Error occured while decoding image. Please try again')
+        mb.showerror('ERROR', 'Error occured while decoding image. Please try again.')
 
 def Delete_Data():
     if not tree.selection():
@@ -97,7 +98,6 @@ def Clear_all():
         pass
 
 def Upload_gui_load():
-
     Insight_text = """
     The program will automatically encode the image chosen with a special encoding
     algorithem. If the database file is compromised, the image data will still be encoded,
@@ -114,11 +114,16 @@ def Upload_gui_load():
 
     log_widget = st.ScrolledText(Output_box,font=Font,background="black",fg="White")
     log_widget.place(relx=0, rely=0.2, relheight=0.8, relwidth=1.04)
+    try:
+        log_widget.insert(tk.INSERT,Log_text)
+        del Log_text
+    except:
+        pass
 
     Label(Output_box,text= 'Console Output',font=Font,background="#7476A7").place(relx=0,rely=0)
 
     Button(Main_win, text='Choose Image', font=Font,fg="white",bg=Main_window_colour,command = Choose_File).place(relx=0.3, rely=0.41,relheight = 0.08,relwidth=0.4)
-    Button(Main_win, text='Encode!',font=Font,fg="white",bg=Main_window_colour,command = Enc_cmd).place(relx=0.8, rely=0.41,relheight = 0.08,relwidth=0.15)
+    Button(Main_win, text='Encode!',font=Font,fg="white",bg=Main_window_colour,command = Thread(target=Enc_cmd).start).place(relx=0.8, rely=0.41,relheight = 0.08,relwidth=0.15)
 
 def Enc_cmd():
     log_widget.delete(2.0,END)
@@ -152,6 +157,8 @@ def Enc_cmd():
             log_widget.insert(tk.INSERT,Tmp_str)
 
             try:
+                connector = sqlite3.connect('Image_database.db')
+                cursor = connector.cursor()
                 cursor.execute("select * from Img_database")
                 results = cursor.fetchall()
                 ID = len(results) + 1
@@ -171,8 +178,6 @@ def Enc_cmd():
             dte = ED.Give_time_and_date()
             Tmp_str ="\n"+dte+" >> [ERROR] Encoding failed"
             log_widget.insert(tk.INSERT,Tmp_str)
-
-
     except:
         dte = ED.Give_time_and_date()
         Tmp_str ="\n"+dte+" >> [ERROR] The path of the image is invalid."
@@ -199,12 +204,12 @@ def Download_gui_load():
     Entry(Main_win, textvariable=Key_word, font=("Bahnschrift Light",18)).place(relx=0.26,y=230,relheight=0.06,relwidth=0.4)
     '''
 
-    Button(Main_win, text='Download Image', font=Font,fg="white",bg=Main_window_colour,command= Download_record).place(relx=0.8,rely = 0.89,relheight=0.1,relwidth=0.18)
+    Button(Main_win, text='Download Image', font=Font,fg="white",bg=Main_window_colour,command= Thread(target=Download_record).start).place(relx=0.8,rely = 0.89,relheight=0.1,relwidth=0.18)
     Button(Main_win, text='Delete Record', font=Font,fg="white",bg=Main_window_colour,command= Delete_Data).place(relx=0.6,rely = 0.89,relheight=0.1,relwidth=0.18)
     Button(Main_win, text='Clear All', font=Font,fg="white",bg=Main_window_colour,command= Clear_all).place(relx=0.4,rely = 0.89,relheight=0.1,relwidth=0.18)
 
+    global tree,Log_text
 
-    global tree
     tree = ttk.Treeview(Main_win, height=100, selectmode=BROWSE,
                    columns=('Sr_No',"Name"))
     tree.heading('Sr_No', text='Sr_No', anchor=W)
@@ -214,6 +219,10 @@ def Download_gui_load():
     tree.place(relx=0.26,y=280,relheight=0.37,relwidth=0.6)
     Display_records()
 
+    try:
+        Log_text= log_widget.get("1.0",END)
+    except:
+        pass
 Insight_text = """
     Secure Imaging database is a project inspired by Google Photos. It uses a custom
     encoding and decoding algorithem to secure your image files.
