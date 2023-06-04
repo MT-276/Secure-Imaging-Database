@@ -8,6 +8,14 @@
 #
 # Lead Dev : Meit Sant
 #-------------------------------------------------------------------------------
+'''
+Disclaimer -
+This project is no longer a casual student project.
+It is too complex and featurefull for a basic project.
+Keep in mind that this is a project by a SOLO 16 year old developer.
+Please DO NOT STEAL the encryption/Decryption algorithm as for a small period of time, this code is public.
+'''
+
 import tkinter as tk
 from tkinter import ttk
 from tkinter import *
