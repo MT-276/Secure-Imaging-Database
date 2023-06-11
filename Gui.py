@@ -8,13 +8,6 @@
 #
 # Lead Dev : Meit Sant
 #-------------------------------------------------------------------------------
-'''
-Disclaimer -
-This project is no longer a casual student project.
-It is too complex and featurefull for a basic project.
-Keep in mind that this is a project by a SOLO 16 year old developer.
-Please DO NOT STEAL the encryption/Decryption algorithm as for a small period of time, this code is public.
-'''
 
 import tkinter as tk
 from tkinter import ttk
@@ -108,8 +101,7 @@ def Clear_all():
 def Upload_gui_load():
     Insight_text = """
     The program will automatically encode the image chosen with a special encoding
-    algorithem. If the database file is compromised, the image data will still be encoded,
-    hence making it harder to penetrate.
+    algorithem. With which all your images will be secure.
     """
     Label(Idea_panel, text=Insight_text, font=("Bahnschrift Light",12),fg="white",bg="#282A39").place(relx=0.015, rely=0.2,relwidth=1)
     Label(Idea_panel, text="Insight", font=("Bahnschrift Bold",14),fg="white",bg="#282A39").place(relx=0.04, y=0.13)

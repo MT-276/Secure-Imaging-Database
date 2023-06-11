@@ -8,13 +8,6 @@
 #
 # Lead Dev : Meit Sant
 #-------------------------------------------------------------------------------
-'''
-Disclaimer -
-This project is no longer a casual student project.
-It is too complex and featurefull for a basic project.
-Keep in mind that this is a project by a SOLO 16 year old developer.
-Please DO NOT STEAL the encryption/Decryption algorithm as for a small period of time, this code is public.
-'''
 
 Debug_mode,Loaded,c = False,False,0
 while Loaded != True:
@@ -197,8 +190,7 @@ def Encode_img():
     return Tell_time(start_time),Img_name,Img_data
 
 def Decode_data(Img_name,Encoded_inp):
-    #---------------------- Decode Loading ----------------------
-
+    #Todo Add password for more security
     start_time = time.perf_counter ()                               # Starts the timer for processing
     Decoded_lst = []
     Decoded_lst1 = []
@@ -262,13 +254,15 @@ def Decode_data(Img_name,Encoded_inp):
     #---------------------- Saving Image ----------------------
     print("\nSaving Image...")
     try:
-        path = './Pictures'                                         # Creates a new directory in the same place as the program
-        os.mkdir(path)                                              # If the the creation of the new dir fails, it means that it is already there.
+        Windows_user_name = os.getlogin()
+        path = r'C:\Users\{0}\Downloads\Pictures'.format(Windows_user_name)
+        os.mkdir(path)
+        sys.exit()
     except:
         pass
 
     try:
-        image.save('Pictures/{}.png'.format(Img_name))              # Saves the generated image in the downloads
+        image.save('{1}\\{0}.png'.format(Img_name,path))              # Saves the generated image in the downloads
     except:
         print("[ERROR] Image was not saved.")
         sys.exit()
