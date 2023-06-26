@@ -10,46 +10,43 @@
 #-------------------------------------------------------------------------------
 
 import tkinter as tk
-from tkinter import ttk
 from tkinter import *
+from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 import tkinter.messagebox as mb
 import tkinter.scrolledtext as st
 from threading import Thread
-import ED,os,sys,time,sqlite3
+from PIL import ImageTk, Image
+import ED,os,sys,time,sqlite3,Account_login_GUI,random
 
+Account_login_GUI.UI()
+UName,AccType = Account_login_GUI.UName,Account_login_GUI.AccType
+
+#UName,AccType = 'Meit','Admin'  # Set the username and account type (Temp)
 global mode
-
-connector = sqlite3.connect('Image_database.db')
+connector = sqlite3.connect('Image_database.db')                                          # Connect to the database
 cursor = connector.cursor()
-connector.execute("CREATE TABLE IF NOT EXISTS img_database (Img_ID INTEGER PRIMARY KEY NOT NULL, ImageNAME TEXT, DATA LONGTEXT)")
+connector.execute("CREATE TABLE IF NOT EXISTS img_database (Img_ID INTEGER AUTO_INCREMENT PRIMARY KEY NOT NULL, ImageNAME TEXT, DATA LONGTEXT)") # Create a table if it doesn't already exist
 
 def Choose_File():
     global filename
-    Loaded = False
-    while Loaded != True:
-        filename = askopenfilename()
-        if 'png' not in filename and 'jpg' not in filename:
-            mb.showerror("ERROR","The file type is invalid. Only jpg and PNG images are supported")
-        else:
-            Loaded = True
+    while True:
+        filename = askopenfilename() # Open a file dialog to choose a file
+        if filename == '': return
+        elif 'png' not in filename and 'jpg' not in filename:
+            mb.showerror("ERROR","The file type is invalid. Only jpg and PNG images are supported") # Show an error if the file type is not supported
+        else: break
     log_widget.delete(1.0,END)
-    dte = ED.Give_time_and_date()
-    Tmp_str =dte+" >> File chosen - '" + filename+"'"
-    log_widget.insert(tk.INSERT,Tmp_str)
-
-    del Tmp_str
+    log_widget.insert(tk.INSERT,f"{ED.Give_time_and_date()} >> File chosen - '{filename}'")
 
 def Display_records():
-   tree.delete(*tree.get_children())
-   curr = connector.execute('SELECT * FROM img_database')
+   tree.delete(*tree.get_children()) # Clear the treeview
+   curr = connector.execute('SELECT * FROM img_database') # Select all records from the database
    data = curr.fetchall()
-   for records in data:
-       tree.insert('', END, values=records)
+   for records in data: tree.insert('', END, values=records) # Insert the records into the treeview
 
 def Download_record():
-   if not tree.selection():
-       mb.showerror('ERROR', 'Please select an item from the database')
+   if not tree.selection(): mb.showerror('ERROR', 'Please select an item from the database') # Show an error if no item is selected
    else:
        Thread(target=lambda : mb.showinfo('Info','The image will be downloaded after decode is performed.')).start()
        current_item = tree.focus()
@@ -59,39 +56,35 @@ def Download_record():
        Img_name = selection[1]
        del selection
        try:
-        ED.Decode_data(Img_name,Data)
+        ED.Decode_data(Img_name,Data) # Decode the data and save the image
         mb.showinfo('Info', 'Image saved successfully')
        except:
-        mb.showerror('ERROR', 'Error occured while decoding image. Please try again.')
+        mb.showerror('ERROR', 'Error occured while decoding image. Please try again.') # Show an error if decoding fails
 
 def Delete_Data():
     if not tree.selection():
-        mb.showerror('ERROR!', 'Please select an item from the database')
+        mb.showerror('ERROR!', 'Please select an item from the database') # Show an error if no item is selected
     else:
-        if mb.askokcancel('Destructive Action - Delete Data','Do you really want to do this ?\nThe Data will be deleted permanently') == True:
+        if mb.askokcancel('Destructive Action - Delete Data','Do you really want to do this ?\nThe Data will be deleted permanently') == True: # Confirm with the user before deleting data
             current_item = tree.focus()
             values = tree.item(current_item)
             selection = values["values"]
             num = selection[0]
-            connector.execute('DELETE FROM img_database WHERE Img_ID=%d' % selection[0])
+            connector.execute('DELETE FROM img_database WHERE Img_ID=%d' % selection[0]) # Delete the selected record from the database
             connector.commit()
 
             cursor.execute("select * from Img_database")
             results = cursor.fetchall()                         #Fetches All data
             total_num = len(results)                            #Gets the total Number of rows
             print(total_num)
-            for i in range(num,total_num+1):                    #Here, num is the Sr no of the record deleted
-                connector.execute('Update img_database set Img_ID = {} where Img_ID = {}'.format(i-1,i))
-                connector.commit()
-            #Todo Fix the numbering of the data records.
             mb.showinfo('Info', 'The Specified data has succesfully been deleted.')
             Display_records()
         else:
             pass
 
 def Clear_all():
-    if mb.askokcancel('Destructive Action - Clear All','Do you really want to do this ?\nThe Data will be deleted permanently') == True:
-        connector.execute('DELETE FROM img_database;')
+    if mb.askokcancel('Destructive Action - Clear All','Do you really want to do this ?\nThe Data will be deleted permanently') == True: # Confirm with the user before clearing all data
+        connector.execute('DELETE FROM img_database;') # Delete all records from the database
         connector.commit()
         mb.showinfo('Info', 'All the data has been erased.')
         Display_records()
@@ -107,41 +100,41 @@ def Upload_gui_load():
     Label(Idea_panel, text="Insight", font=("Bahnschrift Bold",14),fg="white",bg="#282A39").place(relx=0.04, y=0.13)
 
     Frame(Main_win,background=Main_window_colour).place(relx=0.23,rely=0.34,relheight=1,relwidth=1)
-    global Output_box,log_widget
+    global Output_box,log_widget,Log_text
 
     Output_box = Frame(Main_win,background="#7476A7")
     Output_box.place(relx=0.3, rely=0.57, relheight=0.35, relwidth=0.5)
 
     log_widget = st.ScrolledText(Output_box,font=Font,background="black",fg="White")
     log_widget.place(relx=0, rely=0.2, relheight=0.8, relwidth=1.04)
+
     try:
         log_widget.insert(tk.INSERT,Log_text)
         del Log_text
-    except:
-        pass
+    except:pass
 
     Label(Output_box,text= 'Console Output',font=Font,background="#7476A7").place(relx=0,rely=0)
 
     Button(Main_win, text='Choose Image', font=Font,fg="white",bg=Main_window_colour,command = Choose_File).place(relx=0.3, rely=0.41,relheight = 0.08,relwidth=0.4)
-    Button(Main_win, text='Encode!',font=Font,fg="white",bg=Main_window_colour,command = Thread(target=Enc_cmd).start).place(relx=0.8, rely=0.41,relheight = 0.08,relwidth=0.15)
+    Button(Main_win, text='Encode!',font=Font,fg="white",bg=Main_window_colour,command = lambda : Thread(target=Enc_cmd).start()).place(relx=0.8, rely=0.41,relheight = 0.08,relwidth=0.15)
 
 def Enc_cmd():
     log_widget.delete(2.0,END)
     if not 'filename' in globals():
-        mb.showerror("ERROR","You have not yet entered the file path.")
+        mb.showerror("ERROR","You have not yet entered the file path.") # Show an error if no file has been chosen
         return None
     dte = ED.Give_time_and_date()
     Tmp_str ="\n"+dte+" >> Loading image..."
     log_widget.insert(tk.INSERT,Tmp_str)
 
     try:
-        ED.Loading_image(filename)
+        ED.Loading_image(filename) # Load the chosen image
 
         dte = ED.Give_time_and_date()
         Tmp_str ="\n"+dte+" >> Encoding image..."
         log_widget.insert(tk.INSERT,Tmp_str)
         try:
-            tme,Img_name,Img_data = ED.Encode_img()
+            tme,Img_name,Img_data = ED.Encode_img() # Encode the image
 
             dte = ED.Give_time_and_date()
             Tmp_str ="\n"+dte+" >> Image Encoded"
@@ -164,7 +157,7 @@ def Enc_cmd():
                 ID = len(results) + 1
                 connector.execute(
                'INSERT INTO Img_database (Img_ID, ImageNAME, DATA) VALUES (?,?,?)', (ID,Img_name,Img_data)
-               )
+               ) # Save the encoded data to the database
                 connector.commit()
 
                 dte = ED.Give_time_and_date()
@@ -173,18 +166,18 @@ def Enc_cmd():
             except:
                 dte = ED.Give_time_and_date()
                 Tmp_str ="\n"+dte+" >> [ERROR] Save Failed"
-                log_widget.insert(tk.INSERT,Tmp_str)
+                log_widget.insert(tk.INSERT,Tmp_str) # Show an error if saving fails
         except:
             dte = ED.Give_time_and_date()
             Tmp_str ="\n"+dte+" >> [ERROR] Encoding failed"
-            log_widget.insert(tk.INSERT,Tmp_str)
+            log_widget.insert(tk.INSERT,Tmp_str) # Show an error if encoding fails
     except:
         dte = ED.Give_time_and_date()
         Tmp_str ="\n"+dte+" >> [ERROR] The path of the image is invalid."
-        log_widget.insert(tk.INSERT,Tmp_str)
+        log_widget.insert(tk.INSERT,Tmp_str) # Show an error if the image path is invalid
 
     del Tmp_str,dte
-    #Todo2 Solve the issue where it hangs if it is a big image
+    return
 
 def Download_gui_load():
 
@@ -205,28 +198,31 @@ def Download_gui_load():
     '''
 
     Button(Main_win, text='Download Image', font=Font,fg="white",bg=Main_window_colour,command= Thread(target=Download_record).start).place(relx=0.8,rely = 0.89,relheight=0.1,relwidth=0.18)
-    Button(Main_win, text='Delete Record', font=Font,fg="white",bg=Main_window_colour,command= Delete_Data).place(relx=0.6,rely = 0.89,relheight=0.1,relwidth=0.18)
-    Button(Main_win, text='Clear All', font=Font,fg="white",bg=Main_window_colour,command= Clear_all).place(relx=0.4,rely = 0.89,relheight=0.1,relwidth=0.18)
+
+
+    if AccType == 'Admin':Button(Main_win, text='Delete Record', font=Font,fg="white",bg=Main_window_colour,command= Delete_Data).place(relx=0.6,rely = 0.89,relheight=0.1,relwidth=0.18)
+    if AccType == 'Admin':Button(Main_win, text='Clear All', font=Font,fg="white",bg=Main_window_colour,command= Clear_all).place(relx=0.4,rely = 0.89,relheight=0.1,relwidth=0.18)
 
     global tree,Log_text
 
-    tree = ttk.Treeview(Main_win, height=100, selectmode=BROWSE,
-                   columns=('Sr_No',"Name"))
+    tree = ttk.Treeview(Main_win,height = 100,selectmode=BROWSE,columns=('Sr_No',"Name"))
+
     tree.heading('Sr_No', text='Sr_No', anchor=W)
     tree.heading('Name', text='Name', anchor=CENTER)
-    tree.column('#0', width=0, stretch=NO)
-    tree.column('#1', width=40, stretch=NO)
-    tree.place(relx=0.26,y=280,relheight=0.37,relwidth=0.6)
-    Display_records()
 
-    try:
-        Log_text= log_widget.get("1.0",END)
-    except:
-        pass
+    tree.column('#0', width = 0,stretch = NO)
+
+    tree.column('#1', width = 40,stretch = NO)
+
+    tree.place(relx = 0.26,y = 280,relheight = 0.37,relwidth = 0.6)
+    Display_records()
+    try:Log_text= log_widget.get("1.0",END)
+    except:pass
+
 Insight_text = """
-    Secure Imaging database is a project inspired by Google Photos. It uses a custom
-    encoding and decoding algorithem to secure your image files.
-    """
+Secure Imaging database is a project inspired by Google Photos.
+It uses a custom encoding and decoding algorithem to secure your image files.
+"""
 
 Main_win = Tk()
 
@@ -236,23 +232,51 @@ Font = ("Bahnschrift Bold",12)
 
 Main_win.title("Secure Imaging Database")
 Main_win.geometry('1010x600')
-Main_win.configure(bg=Main_window_colour)
+Main_win.configure(bg = Main_window_colour)
 
-Side_panel = Frame(Main_win, background=Side_panel_colour)
-Side_panel.place(x=0, y=0, relheight=1, relwidth=0.23)
+Side_panel = Frame(Main_win,background = Side_panel_colour)
+Side_panel.place(x = 0,
+                 y = 0,
+                 relheight = 1,
+                 relwidth = 0.23)
 
 Shadow = Frame(Main_win,background="#1C2028")
-Shadow.place(relx=0.257, rely=0.117, relheight=0.21, relwidth=0.675)
+Shadow.place(relx = 0.257,
+             rely = 0.117,
+             relheight = 0.21,
+             relwidth = 0.675)
+
+Label(Main_win,text='Welcome {0}'.format(UName),font=("Bahnschrift Bold",16),fg="white",bg = Main_window_colour).place(relx = 0.78,rely = 0.04)
+
+if AccType == 'Admin':
+    image = Image.open(r"./Assets/Admin_acc.png")                                         # Sets user img as Admin user
+else:
+    image = Image.open(r"./Assets/Acc_img.png")                                           # Sets user img as Regular user
+
+image=image.resize((50 ,50),Image.ANTIALIAS)
+Acc_photo = ImageTk.PhotoImage(image)
+image_label = Label(Main_win,image = Acc_photo,borderwidth = 0,highlightthickness = 0)
+image_label.place(relx = 0.93,rely = 0.02)                                                # Places user img on the top right hand corner
+
+dir_list = os.listdir(r"./Assets/HomeScr_photos")
+image1 = Image.open(f"./Assets/HomeScr_photos/{random.choice(dir_list)}")                 # Randomizes the Home Screen image
+
+image1=image1.resize((600 ,350),Image.ANTIALIAS)                                          # Displays the Home screen image
+photo1 = ImageTk.PhotoImage(image1)
+image_label1 = Label(Main_win,image = photo1,borderwidth = 0,highlightthickness = 0)
+image_label1.place(relx = 0.3,rely = 0.35)
 
 Idea_panel = Frame(Main_win,background="#282A39")
-Idea_panel.place(relx=0.264, rely=0.125, relheight=0.19, relwidth=0.66)
+Idea_panel.place(relx = 0.264,rely = 0.125,relheight = 0.19,relwidth = 0.66)
 
-Label(Idea_panel, text=Insight_text, font=("Bahnschrift Light",12),fg="white",bg="#282A39").place(relx=0.02, rely=0.2)
-Label(Idea_panel, text="Insight", font=("Bahnschrift Bold",14),fg="white",bg="#282A39").place(relx=0.04, y=0.13)
+Label(Idea_panel,text=Insight_text,font=("Bahnschrift Light",12),fg="white",bg="#282A39").place(relx=0.02,rely=0.2)
 
-Label(Side_panel, text="Secure Imaging Database", font=("Bahnschrift Light",12),fg="white",bg=Side_panel_colour).place(relx=0.04, rely=0.02)
+Label(Idea_panel,text="Insight",font=("Bahnschrift Bold",14),fg="white",bg="#282A39").place(relx=0.04,y=0.13)
 
-Button(Side_panel, text='Upload Image', font=Font,fg="white",bg=Side_panel_colour,command = Upload_gui_load).place(relx=0.15, rely=0.3,relheight=0.1,relwidth=0.7)
-Button(Side_panel, text='Download Image', font=Font,fg="white",bg=Side_panel_colour,command = Download_gui_load).place(relx=0.15, rely=0.5,relheight=0.1,relwidth=0.7)
+Label(Side_panel,text="Secure Imaging Database",font=("Bahnschrift Light",12),fg="white",bg=Side_panel_colour).place(relx=0.04,rely=0.02)
+
+Button(Side_panel,text='Upload Image',font=Font,fg="white",bg=Side_panel_colour,command = Upload_gui_load).place(relx=0.15,rely=0.3,relheight=0.1,relwidth=0.7)
+
+Button(Side_panel,text='Download Image',font=Font,fg="white",bg=Side_panel_colour,command = Download_gui_load).place(relx=0.15,rely=0.5,relheight=0.1,relwidth=0.7)
 
 Main_win.mainloop()
