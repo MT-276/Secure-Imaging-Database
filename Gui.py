@@ -19,7 +19,7 @@ from threading import Thread
 from PIL import ImageTk, Image
 import ED,os,sys,time,sqlite3,Account_login_GUI,random
 
-Account_login_GUI.UI()
+Account_login_GUI.Login_UI()
 UName,AccType = Account_login_GUI.UName,Account_login_GUI.AccType
 
 #UName,AccType = 'Meit','Admin'  # Set the username and account type (Temp)
@@ -40,6 +40,7 @@ def Choose_File():
     log_widget.insert(tk.INSERT,f"{ED.Give_time_and_date()} >> File chosen - '{filename}'")
 
 def Display_records():
+    #Todo If Normal user, display only user's images.
    tree.delete(*tree.get_children()) # Clear the treeview
    curr = connector.execute('SELECT * FROM img_database') # Select all records from the database
    data = curr.fetchall()
@@ -157,7 +158,7 @@ def Enc_cmd():
                 ID = len(results) + 1
                 connector.execute(
                'INSERT INTO Img_database (Img_ID, ImageNAME, DATA) VALUES (?,?,?)', (ID,Img_name,Img_data)
-               ) # Save the encoded data to the database
+               ) #Todo Save with UserName
                 connector.commit()
 
                 dte = ED.Give_time_and_date()
@@ -246,7 +247,10 @@ Shadow.place(relx = 0.257,
              relheight = 0.21,
              relwidth = 0.675)
 
-Label(Main_win,text='Welcome {0}'.format(UName),font=("Bahnschrift Bold",16),fg="white",bg = Main_window_colour).place(relx = 0.78,rely = 0.04)
+X_disp = 1.0-float('0.'+str(len(UName)))
+#Todo Fix the Name display. Adjust using length
+
+Label(Main_win,text='Welcome {0}'.format(UName),font=("Bahnschrift Bold",16),fg="white",bg = Main_window_colour).place(relx = X_disp,rely = 0.04)
 
 if AccType == 'Admin':
     image = Image.open(r"./Assets/Admin_acc.png")                                         # Sets user img as Admin user
