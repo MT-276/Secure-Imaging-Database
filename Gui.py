@@ -16,8 +16,8 @@ from tkinter.filedialog import askopenfilename
 import tkinter.messagebox as mb
 import tkinter.scrolledtext as st
 from threading import Thread
-from PIL import ImageTk, Image
 import ED,os,sys,time,sqlite3,Account_login_GUI,random
+from PIL import ImageTk, Image
 
 Account_login_GUI.Login_UI()
 try: UName,AccType = Account_login_GUI.UName,Account_login_GUI.AccType
@@ -272,7 +272,7 @@ if AccType == 'Admin':
 else:
     image = Image.open(r"./Assets/Acc_img.png")                                             # Sets user img as Regular user
 
-image=image.resize((50 ,50),Image.ANTIALIAS)
+image=image.resize((50 ,50),Image.LANCZOS)
 Acc_photo = ImageTk.PhotoImage(image)
 image_label = Label(Main_win,image = Acc_photo,borderwidth = 0,highlightthickness = 0)
 image_label.place(relx = 0.93,rely = 0.02)                                                  # Places user img on the top right hand corner
@@ -280,7 +280,7 @@ image_label.place(relx = 0.93,rely = 0.02)                                      
 dir_list = os.listdir(r"./Assets/HomeScr_photos")
 image1 = Image.open(f"./Assets/HomeScr_photos/{random.choice(dir_list)}")                   # Randomizes the Home Screen image
 
-image1=image1.resize((600 ,350),Image.ANTIALIAS)                                            # Displays the Home screen image
+image1=image1.resize((600 ,350),Image.LANCZOS)                                            # Displays the Home screen image
 photo1 = ImageTk.PhotoImage(image1)
 image_label1 = Label(Main_win,image = photo1,borderwidth = 0,highlightthickness = 0)
 image_label1.place(relx = 0.3,rely = 0.35)
