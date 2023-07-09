@@ -25,7 +25,9 @@ except: sys.exit()
 
 #UName,AccType = 'Meit','Admin'  # Set the username and account type (Temp)
 global mode
-connector = sqlite3.connect('Image_database.db')                                            # Connect to the database
+
+# Connect to the database
+connector = sqlite3.connect('Image_database.db')
 cursor = connector.cursor()
 connector.execute("CREATE TABLE IF NOT EXISTS img_database (Img_ID INTEGER AUTO_INCREMENT PRIMARY KEY NOT NULL, ImageNAME TEXT, DATA LONGTEXT, UserName VARCHAR(10))")   # Create a table if it doesn't already exist
 connector.commit()
@@ -33,61 +35,77 @@ connector.commit()
 def Choose_File():
     global filename
     while True:
-        filename = askopenfilename()                                                        # Open a file dialog to choose a file
+        # Open a file dialog to choose a file
+        filename = askopenfilename()
         if filename == '': return
         elif 'png' not in filename and 'jpg' not in filename:
-            mb.showerror("ERROR","The file type is invalid. Only jpg and PNG images are supported")   # Show an error if the file type is not supported
+            # Shows an error if the file type is not supported
+            mb.showerror("ERROR","The file type is invalid. Only jpg and PNG images are supported")
         else: break
     log_widget.delete(1.0,END)
     log_widget.insert(tk.INSERT,f"{ED.Give_time_and_date()} >> File chosen - '{filename}'")
 
 def Display_records():
-    tree.delete(*tree.get_children())                                                        # Clear the treeview
-    curr = connector.execute('SELECT * FROM img_database;')                                   # Select all records from the database
+    # Clear the treeview
+    tree.delete(*tree.get_children())
+    # Select all records from the database
+    curr = connector.execute('SELECT * FROM img_database;')
     data = curr.fetchall()
     i = 0
     for records in data:
         if AccType != 'Admin' and records[3] != UName: continue
         i+=1
         if AccType == 'Admin':
-            tree.insert('', END, values=(i,records[1],records[3]))                              # Insert the records into the treeview
+            # Insert the records into the treeview
+            tree.insert('', END, values=(i,records[1],records[3]))
         else: tree.insert('', END, values=(i,records[1]))
     del i,data
 
 def Download_record():
-    if not tree.selection(): mb.showerror('ERROR', 'Please select an item from the database')# Show an error if no item is selected
+    # Shows an error if no item is selected
+    if not tree.selection(): mb.showerror('ERROR', 'Please select an item from the database')
     else:
         #Thread(target=lambda : mb.showinfo('Info','The image will be downloaded after decode is performed.')).start()
         current_item = tree.focus()
         values = tree.item(current_item)
         selection = values["values"]
         Img_name = selection[1]
-        connector = sqlite3.connect('Image_database.db')                                            # Connect to the database
+
+        # Connect to the database
+        connector = sqlite3.connect('Image_database.db')
         cursor = connector.cursor()
         curr1 = connector.execute('SELECT DATA FROM img_database WHERE ImageNAME = ?;', (Img_name,))
         Data = curr1.fetchall()
         del selection,connector,cursor,curr1,values,current_item
         try:
-            ED.Decode_data(Img_name,Data[0][0])                                                       # Decode the data and save the image
+            # Decode the data and save the image
+            ED.Decode_data(Img_name,Data[0][0])
             mb.showinfo('Info', 'Image saved successfully')
         except:
-            mb.showerror('ERROR', 'Error occured while decoding image. Please try again.')      # Show an error if decoding fails
+            # Shows an error if decoding fails
+            mb.showerror('ERROR', 'Error occured while decoding image. Please try again.')
 
 def Delete_Data():
     if not tree.selection():
-        mb.showerror('ERROR!', 'Please select an item from the database')                   # Show an error if no item is selected
+        # Shows an error if no item is selected
+        mb.showerror('ERROR!', 'Please select an item from the database')
     else:
         if mb.askokcancel('Destructive Action - Delete Data','Do you really want to do this ?\nThe Data will be deleted permanently') == True:   # Confirm with the user before deleting data
             current_item = tree.focus()
             values = tree.item(current_item)
             selection = values["values"]
             num = selection[0]
-            connector.execute('DELETE FROM img_database WHERE Img_ID=%d' % selection[0])    # Delete the selected record from the database
+
+            # Delete the selected record from the database
+            connector.execute('DELETE FROM img_database WHERE Img_ID=%d' % selection[0])
             connector.commit()
 
             cursor.execute("select * from Img_database")
-            results = cursor.fetchall()                                                     #Fetches All data
-            total_num = len(results)                                                        #Gets the total Number of rows
+            # Fetches All data
+            results = cursor.fetchall()
+
+            # Gets the total Number of rows
+            total_num = len(results)
             print(total_num)
             mb.showinfo('Info', 'The Specified data has succesfully been deleted.')
             Display_records()
@@ -95,8 +113,10 @@ def Delete_Data():
             pass
 
 def Clear_all():
-    if mb.askokcancel('Destructive Action - Clear All','Do you really want to do this ?\nThe Data will be deleted permanently') == True:   # Confirm with the user before clearing all data
-        connector.execute('DELETE FROM img_database;')                                      # Delete all records from the database
+    # Confirm with the user before clearing all data
+    if mb.askokcancel('Destructive Action - Clear All','Do you really want to do this ?\nThe Data will be deleted permanently') == True:
+        # Delete all records from the database
+        connector.execute('DELETE FROM img_database;')
         connector.commit()
         mb.showinfo('Info', 'All the data has been erased.')
         Display_records()
@@ -133,7 +153,7 @@ def Upload_gui_load():
 def Enc_cmd():
     log_widget.delete(2.0,END)
     if not 'filename' in globals():
-        mb.showerror("ERROR","You have not yet entered the file path.")                     # Show an error if no file has been chosen
+        mb.showerror("ERROR","You have not yet entered the file path.")                     # Shows an error if no file has been chosen
         return None
     dte = ED.Give_time_and_date()
     Tmp_str ="\n"+dte+" >> Loading image..."
@@ -178,15 +198,15 @@ def Enc_cmd():
             except:
                 dte = ED.Give_time_and_date()
                 Tmp_str ="\n"+dte+" >> [ERROR] Save Failed"
-                log_widget.insert(tk.INSERT,Tmp_str)                                        # Show an error if saving fails
+                log_widget.insert(tk.INSERT,Tmp_str)                                        # Shows an error if saving fails
         except:
             dte = ED.Give_time_and_date()
             Tmp_str ="\n"+dte+" >> [ERROR] Encoding failed"
-            log_widget.insert(tk.INSERT,Tmp_str)                                            # Show an error if encoding fails
+            log_widget.insert(tk.INSERT,Tmp_str)                                            # Shows an error if encoding fails
     except:
         dte = ED.Give_time_and_date()
         Tmp_str ="\n"+dte+" >> [ERROR] The path of the image is invalid."
-        log_widget.insert(tk.INSERT,Tmp_str)                                                # Show an error if the image path is invalid
+        log_widget.insert(tk.INSERT,Tmp_str)                                                # Shows an error if the image path is invalid
 
 
     del Tmp_str,dte
@@ -248,7 +268,7 @@ Side_panel_colour ='#1C2028'
 Font = ("Bahnschrift Bold",12)
 
 Main_win.title("Secure Imaging Database")
-Main_win.geometry('1010x600+350+200')
+Main_win.geometry('1020x600+350+200')
 Main_win.configure(bg = Main_window_colour)
 
 Side_panel = Frame(Main_win,background = Side_panel_colour)

@@ -9,7 +9,7 @@
 # Lead Dev : Meit Sant
 #-------------------------------------------------------------------------------
 import sys
-Debug_mode,Loaded,c = False,False,0
+Debug_mode = False
 
 try:
     # Importing third-party libraries
@@ -24,10 +24,21 @@ except ModuleNotFoundError:
         from PIL import Image
     except ImportError:
         print("""
-            [ERROR] An error occured while downloading libraries.
-            Please try again or contact dev
+[ERROR] An error occured while downloading libraries.
+Please try again or contact dev
               """)
         sys.exit()
+
+def Encrypt_Pwd(Password):
+    Encrypted_Password = ''
+    for i in Password: Encrypted_Password += str(bin(ord(i))[2:]) + ' '
+    return Encrypted_Password
+def Decrypt_Pwd(Encrypted_Password):
+    Password = ''
+    for i in Encrypted_Password.split(' '):
+        if i == '': return Password
+        else: Password += chr(int(i, 2))
+    return Password
 
 def Encode(Nums):
     """
@@ -94,7 +105,7 @@ def Encode(Nums):
     return Key,Computed_nums
 
 def Decode(Hashed_str):
-#Todo Add Docstring (Decode)
+    #Todo Add Docstring (Decode)
     decoded = ""
     # Key-Value table
 
