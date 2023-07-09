@@ -84,7 +84,7 @@ def Download_record():
         except:
             # Shows an error if decoding fails
             mb.showerror('ERROR', 'Error occured while decoding image. Please try again.')
-
+        return
 def Delete_Data():
     if not tree.selection():
         # Shows an error if no item is selected
@@ -143,7 +143,7 @@ def Upload_gui_load():
     try:
         log_widget.insert(tk.INSERT,Log_text)
         del Log_text
-    except:pass
+    except: pass
 
     Label(Output_box,text= 'Console Output',font=Font,background="#7476A7").place(relx=0,rely=0)
 
@@ -153,20 +153,23 @@ def Upload_gui_load():
 def Enc_cmd():
     log_widget.delete(2.0,END)
     if not 'filename' in globals():
-        mb.showerror("ERROR","You have not yet entered the file path.")                     # Shows an error if no file has been chosen
+        # Shows an error if no file has been chosen
+        mb.showerror("ERROR","You have not yet entered the file path.")
         return None
     dte = ED.Give_time_and_date()
     Tmp_str ="\n"+dte+" >> Loading image..."
     log_widget.insert(tk.INSERT,Tmp_str)
 
     try:
-        ED.Loading_image(filename)                                                          # Load the chosen image
+        # Load the chosen image
+        ED.Loading_image(filename)
 
         dte = ED.Give_time_and_date()
         Tmp_str ="\n"+dte+" >> Encoding image..."
         log_widget.insert(tk.INSERT,Tmp_str)
         try:
-            tme,Img_name,Img_data = ED.Encode_img()                                         # Encode the image
+            # Encode the image
+            tme,Img_name,Img_data = ED.Encode_img()
 
             dte = ED.Give_time_and_date()
             Tmp_str ="\n"+dte+" >> Image Encoded"
@@ -200,13 +203,15 @@ def Enc_cmd():
                 Tmp_str ="\n"+dte+" >> [ERROR] Save Failed"
                 log_widget.insert(tk.INSERT,Tmp_str)                                        # Shows an error if saving fails
         except:
+            # Shows an error if encoding fails
             dte = ED.Give_time_and_date()
             Tmp_str ="\n"+dte+" >> [ERROR] Encoding failed"
-            log_widget.insert(tk.INSERT,Tmp_str)                                            # Shows an error if encoding fails
+            log_widget.insert(tk.INSERT,Tmp_str)
     except:
+        # Shows an error if the image path is invalid
         dte = ED.Give_time_and_date()
         Tmp_str ="\n"+dte+" >> [ERROR] The path of the image is invalid."
-        log_widget.insert(tk.INSERT,Tmp_str)                                                # Shows an error if the image path is invalid
+        log_widget.insert(tk.INSERT,Tmp_str)
 
 
     del Tmp_str,dte
@@ -285,7 +290,11 @@ Shadow.place(relx = 0.257,
 
 X_disp = 840-(len(UName)*10)
 
-Label(Main_win,text='Welcome {0}'.format(UName),font=("Bahnschrift Bold",16),fg="white",bg = Main_window_colour).place(x = X_disp,rely = 0.04)
+Label(Main_win,
+            text='Welcome {0}'.format(UName),
+            font=("Bahnschrift Bold",16),
+            fg="white",
+            bg = Main_window_colour).place(x = X_disp,rely = 0.04)
 
 if AccType == 'Admin':
     image = Image.open(r"./Assets/Admin_acc.png")                                           # Sets user img as Admin user
@@ -295,12 +304,16 @@ else:
 image=image.resize((50 ,50),Image.LANCZOS)
 Acc_photo = ImageTk.PhotoImage(image)
 image_label = Label(Main_win,image = Acc_photo,borderwidth = 0,highlightthickness = 0)
-image_label.place(relx = 0.93,rely = 0.02)                                                  # Places user img on the top right hand corner
 
+# Places user img on the top right hand corner
+image_label.place(relx = 0.93,rely = 0.02)
 dir_list = os.listdir(r"./Assets/HomeScr_photos")
-image1 = Image.open(f"./Assets/HomeScr_photos/{random.choice(dir_list)}")                   # Randomizes the Home Screen image
 
-image1=image1.resize((600 ,350),Image.LANCZOS)                                            # Displays the Home screen image
+# Randomizes the Home Screen image
+image1 = Image.open(f"./Assets/HomeScr_photos/{random.choice(dir_list)}")
+
+# Displays the Home screen image
+image1=image1.resize((600 ,350),Image.LANCZOS)
 photo1 = ImageTk.PhotoImage(image1)
 image_label1 = Label(Main_win,image = photo1,borderwidth = 0,highlightthickness = 0)
 image_label1.place(relx = 0.3,rely = 0.35)
