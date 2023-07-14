@@ -85,6 +85,7 @@ def Download_record():
             # Shows an error if decoding fails
             mb.showerror('ERROR', 'Error occured while decoding image. Please try again.')
         return
+
 def Delete_Data():
     if not tree.selection():
         # Shows an error if no item is selected
@@ -128,8 +129,8 @@ def Upload_gui_load():
     The program will automatically encode the image chosen with a special encoding
     algorithem. With which all your images will be secure.
     """
-    Label(Idea_panel, text=Insight_text, font=("Bahnschrift Light",12),fg="white",bg=Main_window_colour).place(relx=0.015, rely=0.2,relwidth=1)
-    Label(Idea_panel, text="Insight", font=("Bahnschrift Bold",14),fg="white",bg=Main_window_colour).place(relx=0.04, y=0.13)
+    Label(Idea_panel, text=Insight_text, font=("Bahnschrift Light",12),fg="white",bg=Main_window_colour).place(relx=0.1, rely=0.23,relwidth=1)
+    #Label(Idea_panel, text="Insight", font=("Bahnschrift Bold",14),fg="white",bg=Main_window_colour).place(relx=0.04, y=0.13)
 
     Frame(Main_win,background=Main_window_colour).place(relx=0.23,rely=0.34,relheight=1,relwidth=1)
     global Output_box,log_widget,Log_text
@@ -307,9 +308,9 @@ image_label = Label(Main_win,image = Acc_photo,borderwidth = 0,highlightthicknes
 
 # Places user img on the top right hand corner
 image_label.place(relx = 0.93,rely = 0.02)
-dir_list = os.listdir(r"./Assets/HomeScr_photos")
 
 # Randomizes the Home Screen image
+dir_list = os.listdir(r"./Assets/HomeScr_photos")
 image1 = Image.open(f"./Assets/HomeScr_photos/{random.choice(dir_list)}")
 
 # Displays the Home screen image
@@ -323,12 +324,52 @@ Idea_panel.place(relx = 0.264,rely = 0.125,relheight = 0.19,relwidth = 0.66)
 
 Label(Idea_panel,text=Insight_text,font=("Bahnschrift Light",12),fg="white",bg=Main_window_colour).place(relx=0.02,rely=0.2)
 
-Label(Idea_panel,text="Insight",font=("Bahnschrift Bold",14),fg="white",bg=Main_window_colour).place(relx=0.04,y=0.13)
+# Insight Image
+image = Image.open(r"./Assets/Insight.png")
+image=image.resize((50 ,37),Image.LANCZOS)
+Insight = ImageTk.PhotoImage(image)
+image_label3 = Label(Idea_panel,image = Insight,borderwidth = 0,highlightthickness = 0)
 
-Label(Side_panel,text="Secure Imaging Database",font=("Bahnschrift Light",12),fg="white",bg=Side_panel_colour).place(relx=0.04,rely=0.02)
+# Places Insight Image near the Insight text
+image_label3.place(relx = 0,rely = 0.1)
 
-Button(Side_panel,text='Upload Image',font=Font,fg="white",bg=Side_panel_colour,command = Upload_gui_load).place(relx=0.15,rely=0.3,relheight=0.1,relwidth=0.7)
+Label(Idea_panel,
+        text="Insight",
+        font=("Bahnschrift Bold",14),
+        fg="white",
+        bg=Main_window_colour).place(relx=0.07,rely=0.15)
 
-Button(Side_panel,text='Download Image',font=Font,fg="white",bg=Side_panel_colour,command = Download_gui_load).place(relx=0.15,rely=0.5,relheight=0.1,relwidth=0.7)
+# Logo Image
+image = Image.open(r"./Assets/DBImg.png")
+image=image.resize((200 ,150),Image.LANCZOS)
+Logo = ImageTk.PhotoImage(image)
+image_label2 = Label(Side_panel,image = Logo,borderwidth = 0,highlightthickness = 0)
+
+# Places logo on the top left hand corner
+image_label2.place(relx = 0.07,rely = 0.1)
+
+Label(Side_panel,
+        text="Secure Imaging Database",
+        font=("Bahnschrift Light",12),
+        fg="white",
+        bg=Side_panel_colour).place(relx=0.08,rely=0.05)
+
+Button(Side_panel,
+        text='Upload Image',
+        font=Font,fg="white",
+        bg=Side_panel_colour,
+        command = Upload_gui_load).place(relx=0.15,
+                                        rely=0.4,
+                                        relheight=0.1,
+                                        relwidth=0.7)
+
+Button(Side_panel,
+        text='Download Image',
+        font=Font,fg="white",
+        bg=Side_panel_colour,
+        command = Download_gui_load).place(relx=0.15,
+                                        rely=0.6,
+                                        relheight=0.1,
+                                        relwidth=0.7)
 
 Main_win.mainloop()

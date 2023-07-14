@@ -24,7 +24,8 @@ except ModuleNotFoundError:
         from PIL import Image
     except ImportError:
         print("""
-[ERROR] Please run the program again.
+[ERROR] An error occured while downloading modules
+Please try again or contact dev
               """)
         sys.exit()
 
