@@ -18,7 +18,7 @@ from PIL import ImageTk, Image
 from ED import Encrypt_Pwd
 global AccType, Font, Password, Pwd, UName, Username
 
-allow_bypass = True
+allow_bypass = False
 Font = ("Bahnschrift Bold", 12)
 
 connector = sqlite3.connect('Image_database.db')
