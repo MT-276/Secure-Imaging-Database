@@ -9,14 +9,14 @@
 # Lead Dev : Meit Sant
 #-------------------------------------------------------------------------------
 import sys
-Debug_mode,Loaded,c = False,False,0
+Debug_mode = False
 
 try:
     # Importing third-party libraries
     from PIL import Image
     import os,time,random
 except ModuleNotFoundError:
-    print("\n[ERROR] An error occured while loading libraries\nAttempting to download libraries...")
+    print("\n[ERROR] An error occured while loading modules\nAttempting to download libraries...")
     from os import system
     try:
         # Attempting to download libraries if not found
@@ -24,10 +24,36 @@ except ModuleNotFoundError:
         from PIL import Image
     except ImportError:
         print("""
-            [ERROR] An error occured while downloading libraries.
-            Please try again or contact dev
+[ERROR] An error occured while downloading modules
+Please try again or contact dev
               """)
         sys.exit()
+
+def Encrypt_Pwd(Password):
+    """
+    Explanation of str(bin(ord(i))[2:]):
+
+    1. ord(i): Obtains the Unicode code point of the character `i`.
+    2. bin(ord(i)): Converts the Unicode code point to its binary representation as a string.
+    3. [2:]: Removes the first two characters (`"0b"`) from the binary string.
+    4. str(): Converts the resulting binary string to a regular string.
+    """
+    Encrypted_Password = ''
+    for i in Password: Encrypted_Password += str(bin(ord(i))[2:]) + ' '
+    return Encrypted_Password
+
+def Decrypt_Pwd(Encrypted_Password):
+    """
+    Explanation of chr(int(j, 2)):
+
+    1. int(j, 2): Converts the binary string j to an integer using base 2.
+    2. chr(): Converts the integer back to its corresponding Unicode character representation.
+    """
+    Password = ''
+    for i in Encrypted_Password.split(' '):
+        if i == '': return Password
+        else: Password += chr(int(i, 2))
+    return Password
 
 def Encode(Nums):
     """
@@ -94,7 +120,7 @@ def Encode(Nums):
     return Key,Computed_nums
 
 def Decode(Hashed_str):
-#Todo Add Docstring (Decode)
+    #Todo Add Docstring (Decode)
     decoded = ""
     # Key-Value table
 
@@ -193,7 +219,6 @@ def Encode_img():
 
     #---------------------- Encoding ----------------------
 
-    print("\nEncoding image...")
     F = NIP.split("\\")
     F = F[-1]
     F = F.split(".")
@@ -225,8 +250,6 @@ def Encode_img():
         print("[ERROR] Encoding failed")
         sys.exit()
     del m,n,i,j,tup,k,E,C
-    print("Image Encoded")
-
     """
     Checking if there was a temp JPG image created
     in case the image was of a different format
@@ -322,19 +345,22 @@ def Decode_data(Img_name,Encoded_inp):
 
     try:
         # Saves the generated image in the downloads
-        image.save(f'{Img_name}\\{path}.png')
+        image.save(f'{path}\\{Img_name}.png')
     except:
         print("[ERROR] Image was not saved.")
         sys.exit()
     print("Image saved succesfully")
-    #os.startfile('Pictures/{}.png'.format(Img_name))
+##    os.startfile(f'{path}\\{Img_name}.png')
     Tell_time(start_time)
+    del image,Windows_user_name,path
+    return
 
 def Tell_time(start_time):
     end_time = time.perf_counter ()
     ao = (end_time - start_time)//1
     if ao>=60:
         ao = str(ao//60) +" Min " + str(ao%60)
+    del end_time
     # Calculates and prints the time taken for execution of the program
     return (" Time for execution : "+str(int(ao))+ " Sec")
 
@@ -350,5 +376,6 @@ def Give_time_and_date():
     today = date.today()
     dte = today.strftime("%b-%d-%Y")
     DT = dte+" "+current_time
+    del now,current_time,today,dte
     # Format : Month-Date-Year Hour(24hr):Minute:Seconds
     return DT
