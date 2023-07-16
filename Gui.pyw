@@ -19,11 +19,11 @@ from threading import Thread
 import ED,os,sys,time,sqlite3,Account_login_GUI,random
 from PIL import ImageTk, Image
 
-Account_login_GUI.Login_UI()
-try: UName,AccType = Account_login_GUI.UName,Account_login_GUI.AccType
-except: sys.exit()
+##Account_login_GUI.Login_UI()
+##try: UName,AccType = Account_login_GUI.UName,Account_login_GUI.AccType
+##except: sys.exit()
 
-#UName,AccType = 'Meit','Admin'  # Set the username and account type (Temp)
+UName,AccType = 'Meit','Admin'  # Set the username and account type (Temp)
 global mode
 
 # Connect to the database
@@ -129,8 +129,22 @@ def Upload_gui_load():
     The program will automatically encode the image chosen with a special encoding
     algorithem. With which all your images will be secure.
     """
-    Label(Idea_panel, text=Insight_text, font=("Bahnschrift Light",12),fg="white",bg=Main_window_colour).place(relx=0.1, rely=0.23,relwidth=1)
-    #Label(Idea_panel, text="Insight", font=("Bahnschrift Bold",14),fg="white",bg=Main_window_colour).place(relx=0.04, y=0.13)
+    # Hider frame for Insight text
+    Frame(Idea_panel,
+            bg=Main_window_colour).place(relx=0,
+                                        rely=0.45,
+                                        relheight=1,
+                                        relwidth=1)
+
+    # Places Insight text
+    Label(Idea_panel,text=Insight_text,font=("Bahnschrift Light",12),fg="white",bg=Main_window_colour).place(relx=0.05,rely=0.3)
+
+    # Places text 'Insight'
+    Label(Idea_panel,
+        text="Insight",
+        font=("Bahnschrift Bold",20),
+        fg="white",
+        bg=Main_window_colour).place(relx=0.05,rely=0.1)
 
     Frame(Main_win,background=Main_window_colour).place(relx=0.23,rely=0.34,relheight=1,relwidth=1)
     global Output_box,log_widget,Log_text
@@ -222,10 +236,24 @@ def Download_gui_load():
 
     Insight_text = """
     Please select the name of your desired image. Upon selecting your
-    image, it will decode your image and save it in your local downloads folder.
+    image, it will decode your image and save it in your local downloads folder
     """
-    Label(Idea_panel, text=Insight_text, font=("Bahnschrift Light",12),fg="white",bg=Main_window_colour).place(relx=0.015, rely=0.2,relwidth=1 )
-    Label(Idea_panel, text="Insight", font=("Bahnschrift Bold",14),fg="white",bg=Main_window_colour).place(relx=0.04, y=0.13)
+    # Hider frame for Insight text
+    Frame(Idea_panel,
+            bg=Main_window_colour).place(relx=0,
+                                        rely=0.45,
+                                        relheight=1,
+                                        relwidth=1)
+
+    # Places Insight text
+    Label(Idea_panel,text=Insight_text,font=("Bahnschrift Light",12),fg="white",bg=Main_window_colour).place(relx=0.1,rely=0.3)
+
+    # Places text 'Insight'
+    Label(Idea_panel,
+        text="Insight",
+        font=("Bahnschrift Bold",20),
+        fg="white",
+        bg=Main_window_colour).place(relx=0.05,rely=0.1)
 
     Frame(Main_win,background=Main_window_colour).place(relx=0.23,rely=0.34,relheight=1,relwidth=1)
 
@@ -319,12 +347,14 @@ photo1 = ImageTk.PhotoImage(image1)
 image_label1 = Label(Main_win,image = photo1,borderwidth = 0,highlightthickness = 0)
 image_label1.place(relx = 0.3,rely = 0.35)
 
+# Defines variable for the Idea_panel frame
 Idea_panel = Frame(Main_win,background=Main_window_colour)
 Idea_panel.place(relx = 0.264,rely = 0.125,relheight = 0.19,relwidth = 0.66)
 
-Label(Idea_panel,text=Insight_text,font=("Bahnschrift Light",12),fg="white",bg=Main_window_colour).place(relx=0.02,rely=0.2)
+# Places Insight text
+Label(Idea_panel,text=Insight_text,font=("Bahnschrift Light",12),fg="white",bg=Main_window_colour).place(relx=0.1,rely=0.3)
 
-# Insight Image
+# Loading Insight Image
 image = Image.open(r"./Assets/Insight.png")
 image=image.resize((40 ,40),Image.LANCZOS)
 Insight = ImageTk.PhotoImage(image)
@@ -333,11 +363,12 @@ image_label3 = Label(Idea_panel,image = Insight,borderwidth = 0,highlightthickne
 # Places Insight Image near the Insight text
 image_label3.place(relx = 0,rely = 0.1)
 
+# Places text "Insight" next to the Insight Image
 Label(Idea_panel,
         text="Insight",
-        font=("Bahnschrift Bold",14),
+        font=("Bahnschrift Bold",20),
         fg="white",
-        bg=Main_window_colour).place(relx=0.07,rely=0.15)
+        bg=Main_window_colour).place(relx=0.05,rely=0.1)
 
 # Logo Image
 image = Image.open(r"./Assets/DBImg.png")
