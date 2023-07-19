@@ -19,17 +19,26 @@ from threading import Thread
 import ED,os,sys,time,sqlite3,Account_login_GUI,random
 from PIL import ImageTk, Image
 
-##Account_login_GUI.Login_UI()
-##try: UName,AccType = Account_login_GUI.UName,Account_login_GUI.AccType
-##except: sys.exit()
+Account_login_GUI.Login_UI()
+try: UName,AccType = Account_login_GUI.UName,Account_login_GUI.AccType
+except: sys.exit()
 
-UName,AccType = 'Meit','Admin'  # Set the username and account type (Temp)
+##UName,AccType = 'Meit','Admin'  # Set the username and account type (Temp)
 global mode
 
 # Connect to the database
 connector = sqlite3.connect('Image_database.db')
 cursor = connector.cursor()
-connector.execute("CREATE TABLE IF NOT EXISTS img_database (Img_ID INTEGER AUTO_INCREMENT PRIMARY KEY NOT NULL, ImageNAME TEXT, DATA LONGTEXT, UserName VARCHAR(10))")   # Create a table if it doesn't already exist
+# Creates a table if it doesn't already exist
+connector.execute("""
+CREATE TABLE IF NOT EXISTS img_database
+(Img_ID INTEGER AUTO_INCREMENT PRIMARY KEY NOT NULL,
+ImageNAME TEXT,
+DATA LONGTEXT,
+UserName VARCHAR(10),
+Status VARCHAR(10)
+);
+""")
 connector.commit()
 
 def Choose_File():
@@ -53,12 +62,21 @@ def Display_records():
     data = curr.fetchall()
     i = 0
     for records in data:
+        # Skips entry of images not uploaded by the logged on user.
         if AccType != 'Admin' and records[3] != UName: continue
+        # Skips deleted entries
+        if AccType != 'Admin' and records[4] == 'Deleted': continue
         i+=1
         if AccType == 'Admin':
+            # Insert the records into the treeview with user's name
+            if records[4] == None:
+                Status = '-'
+            else:
+                Status = 'Image Deleted by User'
+            tree.insert('', END, values=(i,records[1],records[3],Status))
+        else:
             # Insert the records into the treeview
-            tree.insert('', END, values=(i,records[1],records[3]))
-        else: tree.insert('', END, values=(i,records[1]))
+            tree.insert('', END, values=(i,records[1]))
     del i,data
 
 def Download_record():
@@ -91,23 +109,22 @@ def Delete_Data():
         # Shows an error if no item is selected
         mb.showerror('ERROR!', 'Please select an item from the database')
     else:
-        if mb.askokcancel('Destructive Action - Delete Data','Do you really want to do this ?\nThe Data will be deleted permanently') == True:   # Confirm with the user before deleting data
+        if mb.askokcancel('Destructive Action - Delete Data','Do you really want to do this ?\nThe Data will be deleted permanently') is True:   # Confirm with the user before deleting data
             current_item = tree.focus()
             values = tree.item(current_item)
             selection = values["values"]
-            num = selection[0]
+
+            # If user is not an admin, the record will not be deleted from the database. To truly delete a record, the user must be an admin.
+            if AccType != "Admin":
+                connector.execute("UPDATE img_database SET status = 'Deleted' WHERE ImageName = ? AND UserName = ? ", (selection[1],UName))
+                connector.commit()
+                Display_records()
+                return
 
             # Delete the selected record from the database
-            connector.execute('DELETE FROM img_database WHERE Img_ID=%d' % selection[0])
+            connector.execute('DELETE FROM img_database WHERE ImageName = ?', (selection[1],))
             connector.commit()
 
-            cursor.execute("select * from Img_database")
-            # Fetches All data
-            results = cursor.fetchall()
-
-            # Gets the total Number of rows
-            total_num = len(results)
-            print(total_num)
             mb.showinfo('Info', 'The Specified data has succesfully been deleted.')
             Display_records()
         else:
@@ -266,16 +283,21 @@ def Download_gui_load():
 
     Button(Main_win, text='Download Image', font=Font,fg="white",bg=Main_window_colour,command= Thread(target=Download_record).start).place(relx=0.8,rely = 0.89,relheight=0.1,relwidth=0.18)
 
+    Button(Main_win, text='Delete Record', font=Font,fg="white",bg=Main_window_colour,command= Delete_Data).place(relx=0.6,rely = 0.89,relheight=0.1,relwidth=0.18)
 
-    if AccType == 'Admin':Button(Main_win, text='Delete Record', font=Font,fg="white",bg=Main_window_colour,command= Delete_Data).place(relx=0.6,rely = 0.89,relheight=0.1,relwidth=0.18)
-    if AccType == 'Admin':Button(Main_win, text='Clear All', font=Font,fg="white",bg=Main_window_colour,command= Clear_all).place(relx=0.4,rely = 0.89,relheight=0.1,relwidth=0.18)
+    if AccType == 'Admin':
+        Button(Main_win, text='Clear All', font=Font,fg="white",bg=Main_window_colour,command= Clear_all).place(relx=0.4,rely = 0.89,relheight=0.1,relwidth=0.18)
 
     global tree,Log_text
 
     if AccType == 'Admin':
-        tree = ttk.Treeview(Main_win,height = 100,selectmode=BROWSE,columns=('Sr_No','Name','UserName'))
+        tree = ttk.Treeview(Main_win,height = 100,selectmode=BROWSE,columns=('Sr_No','Name','UserName','Status'))
         tree.heading('UserName', text='UserName',anchor=W)
         tree.column('#2', width = 40,stretch = YES)
+
+        tree.heading('Status', text='Status',anchor=W)
+        tree.column('#3', width = 40,stretch = YES)
+
 
     else: tree = ttk.Treeview(Main_win,height = 100,selectmode=BROWSE,columns=('Sr_No','Name'))
 
