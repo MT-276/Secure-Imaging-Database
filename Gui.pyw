@@ -317,6 +317,13 @@ Secure Imaging database is a project inspired by Google Photos.
 It uses a custom encoding and decoding algorithem to secure your image files.
 """
 
+def Info_Show():
+    image = Image.open(r"./Assets/Info_bg.png")
+    image=image.resize((1020 ,600),Image.LANCZOS)
+    Info_bg_img = ImageTk.PhotoImage(image)
+    Info_bg = Button(Main_win,image = Info_bg_img,borderwidth = 0,highlightthickness = 0,command=lambda:print('SUI'))
+    Info_bg.place(x=0,y=0)
+    #return
 Main_win = Tk()
 
 Main_window_colour = '#28293F'
@@ -348,11 +355,13 @@ Label(Main_win,
             bg = Main_window_colour).place(x = X_disp,rely = 0.04)
 
 if AccType == 'Admin':
-    image = Image.open(r"./Assets/Admin_acc.png")                                           # Sets user img as Admin user
+    # Sets user img as Admin user
+    image = Image.open(r"./Assets/Admin_acc.png")
 else:
-    image = Image.open(r"./Assets/Acc_img.png")                                             # Sets user img as Regular user
+    # Sets user img as Regular user
+    image = Image.open(r"./Assets/Acc_img.png")
 
-image=image.resize((50 ,50),Image.LANCZOS)
+image  =image.resize((50 ,50),Image.LANCZOS)
 Acc_photo = ImageTk.PhotoImage(image)
 image_label = Label(Main_win,image = Acc_photo,borderwidth = 0,highlightthickness = 0)
 
@@ -380,10 +389,10 @@ Label(Idea_panel,text=Insight_text,font=("Bahnschrift Light",12),fg="white",bg=M
 image = Image.open(r"./Assets/Insight.png")
 image=image.resize((40 ,40),Image.LANCZOS)
 Insight = ImageTk.PhotoImage(image)
-image_label3 = Label(Idea_panel,image = Insight,borderwidth = 0,highlightthickness = 0)
+image_label2 = Label(Idea_panel,image = Insight,borderwidth = 0,highlightthickness = 0)
 
 # Places Insight Image near the Insight text
-image_label3.place(relx = 0,rely = 0.1)
+image_label2.place(relx = 0,rely = 0.1)
 
 # Places text "Insight" next to the Insight Image
 Label(Idea_panel,
@@ -396,10 +405,20 @@ Label(Idea_panel,
 image = Image.open(r"./Assets/DBImg.png")
 image=image.resize((150 ,150),Image.LANCZOS)
 Logo = ImageTk.PhotoImage(image)
-image_label2 = Label(Side_panel,image = Logo,borderwidth = 0,highlightthickness = 0)
+image_label3 = Label(Side_panel,image = Logo,borderwidth = 0,highlightthickness = 0)
 
 # Places logo on the top left hand corner
-image_label2.place(relx = 0.18,rely = 0.1)
+image_label3.place(relx = 0.18,rely = 0.1)
+
+# Info Image
+image = Image.open(r"./Assets/Info.png")
+image=image.resize((30 ,30),Image.LANCZOS)
+Info_img = ImageTk.PhotoImage(image)
+Info_Button = Button(Side_panel,image = Info_img,borderwidth = 0,highlightthickness = 0,command=Info_Show)
+
+# Places logo on the top left hand corner
+Info_Button.place(relx = 0.18,rely = 0.95)
+
 
 Label(Side_panel,
         text="Secure Imaging Database",
