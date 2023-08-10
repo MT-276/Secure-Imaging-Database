@@ -19,6 +19,7 @@ from ED import Encrypt_Pwd
 global AccType, Font, Password, Pwd, UName, Username
 
 allow_bypass = True
+
 Font = ("Bahnschrift Bold", 12)
 
 connector = sqlite3.connect('Image_database.db')
@@ -27,7 +28,8 @@ CREATE TABLE IF NOT EXISTS Acc_database (
 Acc_ID INTEGER PRIMARY KEY AUTOINCREMENT,
 AccNAME VARCHAR(10) UNIQUE,
 Pwd VARCHAR(100),
-AccType Varchar(5) )
+AccType Varchar(5),
+Date_of_creation DATE )
 """)
 
 def Login():
@@ -76,7 +78,7 @@ def Register():
         admin_password = simpledialog.askstring("Admin Password", "Enter Admin Password:", show='*')
         if admin_password == "pwd1212":
             try:
-                connector.execute("INSERT INTO Acc_database (AccNAME, Pwd, AccType) VALUES (?,?,'Admin')",
+                connector.execute("INSERT INTO Acc_database (AccNAME, Pwd, AccType, Date_of_creation) VALUES (?,?,'Admin',datetime())",
                     (UName,Encrypt_Pwd(Pwd)))
                 connector.commit()
             except:
@@ -90,8 +92,8 @@ def Register():
             return
     else:
         try:
-            connector.execute("INSERT INTO Acc_database (AccNAME, Pwd) VALUES (?,?)",
-            (UName,Encrypt_Pwd(Pwd)))
+            connector.execute("INSERT INTO Acc_database (AccNAME, Pwd, Date_of_creation) VALUES (?,?,datetime())",
+                (UName,Encrypt_Pwd(Pwd)))
             connector.commit()
         except:
             mb.showerror("Error", "The username already exists")
@@ -99,7 +101,7 @@ def Register():
         mb.showinfo("Success", "Registration successful")
         Username.delete(0, END)
         Password.delete(0, END)
-
+    connector.commit()
     back_to_login()
 
 def Login_UI():

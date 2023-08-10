@@ -20,8 +20,10 @@ import ED,os,sys,time,sqlite3,Account_login_GUI,random
 from PIL import ImageTk, Image
 
 Account_login_GUI.Login_UI()
-try: UName,AccType = Account_login_GUI.UName,Account_login_GUI.AccType
-except: sys.exit()
+try:
+    UName,AccType = Account_login_GUI.UName,Account_login_GUI.AccType
+except:
+    sys.exit()
 
 ##UName,AccType = 'Meit','Admin'  # Set the username and account type (Temp)
 global mode
@@ -54,36 +56,51 @@ def Choose_File():
     log_widget.delete(1.0,END)
     log_widget.insert(tk.INSERT,f"{ED.Give_time_and_date()} >> File chosen - '{filename}'")
 
-def Display_records():
+def Display_records(view):
     # Clear the treeview
     tree.delete(*tree.get_children())
-    # Select all records from the database
-    curr = connector.execute('SELECT * FROM img_database;')
-    data = curr.fetchall()
-    i = 0
-    for records in data:
-        # Skips entry of images not uploaded by the logged on user.
-        if AccType != 'Admin' and records[3] != UName: continue
-        # Skips deleted entries
-        if AccType != 'Admin' and records[4] == 'Deleted': continue
-        i+=1
-        if AccType == 'Admin':
-            # Insert the records into the treeview with user's name
-            if records[4] == None:
-                Status = '-'
+
+    # Extract data from database according to view.
+    if view == 'Download':
+        curr = connector.execute('SELECT * FROM img_database;')
+        data = curr.fetchall()
+        i = 0
+        for records in data:
+            # Skips entry of images not uploaded by the logged on user.
+            if AccType != 'Admin' and records[3] != UName: continue
+            # Skips deleted entries
+            if AccType != 'Admin' and records[4] == 'Deleted': continue
+            i+=1
+            if AccType == 'Admin':
+                # Insert the records into the treeview with user's name
+                if records[4] == None:
+                    Status = '-'
+                else:
+                    Status = 'Image Deleted by User'
+                tree.insert('', END, values=(i,records[1],records[3],Status))
             else:
-                Status = 'Image Deleted by User'
-            tree.insert('', END, values=(i,records[1],records[3],Status))
-        else:
-            # Insert the records into the treeview
-            tree.insert('', END, values=(i,records[1]))
-    del i,data
+                # Insert the records into the treeview
+                tree.insert('', END, values=(i,records[1]))
+        del i,data
+    if view == 'Accounts':
+        curr = connector.execute('SELECT * From Acc_database')
+        data = curr.fetchall()
+        i = 0
+        for records in data:
+            i+=1
+            if records[3] == None:
+                Ac_type = ''
+            else:
+                Ac_type = 'Admin'
+            tree.insert('', END, values=(i,records[1],Ac_type,records[4]))
+        del i,data
 
 def Download_record():
     # Shows an error if no item is selected
     if not tree.selection(): mb.showerror('ERROR', 'Please select an item from the database')
     else:
-        #Thread(target=lambda : mb.showinfo('Info','The image will be downloaded after decode is performed.')).start()
+        Thread(target=
+            lambda : mb.showinfo('Info','The image will be downloaded after decode is performed.')).start()
         current_item = tree.focus()
         values = tree.item(current_item)
         selection = values["values"]
@@ -109,16 +126,21 @@ def Delete_Data():
         # Shows an error if no item is selected
         mb.showerror('ERROR!', 'Please select an item from the database')
     else:
-        if mb.askokcancel('Destructive Action - Delete Data','Do you really want to do this ?\nThe Data will be deleted permanently') is True:   # Confirm with the user before deleting data
+        if mb.askokcancel('Destructive Action - Delete Data',
+            'Do you really want to do this ?\nThe Data will be deleted permanently') is True:   # Confirm with the user before deleting data
             current_item = tree.focus()
             values = tree.item(current_item)
             selection = values["values"]
 
-            # If user is not an admin, the record will not be deleted from the database. To truly delete a record, the user must be an admin.
+            # If user is not an admin, the record will not be deleted from the database.
+            # To truly delete a record, the user must be an admin.
             if AccType != "Admin":
-                connector.execute("UPDATE img_database SET status = 'Deleted' WHERE ImageName = ? AND UserName = ? ", (selection[1],UName))
+                connector.execute("""
+UPDATE img_database
+SET status = 'Deleted'
+WHERE ImageName = ? AND UserName = ? """, (selection[1],UName))
                 connector.commit()
-                Display_records()
+                Display_records('Download')
                 return
 
             # Delete the selected record from the database
@@ -126,18 +148,19 @@ def Delete_Data():
             connector.commit()
 
             mb.showinfo('Info', 'The Specified data has succesfully been deleted.')
-            Display_records()
+            Display_records('Download')
         else:
             pass
 
 def Clear_all():
     # Confirm with the user before clearing all data
-    if mb.askokcancel('Destructive Action - Clear All','Do you really want to do this ?\nThe Data will be deleted permanently') == True:
+    if mb.askokcancel('Destructive Action - Clear All',
+        'Do you really want to do this ?\nThe Data will be deleted permanently') is True:
         # Delete all records from the database
         connector.execute('DELETE FROM img_database;')
         connector.commit()
         mb.showinfo('Info', 'All the data has been erased.')
-        Display_records()
+        Display_records('Download')
     else:
         pass
 
@@ -154,7 +177,10 @@ def Upload_gui_load():
                                         relwidth=1)
 
     # Places Insight text
-    Label(Idea_panel,text=Insight_text,font=("Bahnschrift Light",12),fg="white",bg=Main_window_colour).place(relx=0.05,rely=0.3)
+    Label(Idea_panel,
+        text=Insight_text,
+        font=("Bahnschrift Light",12),
+        fg="white",bg=Main_window_colour).place(relx=0.05,rely=0.3)
 
     # Places text 'Insight'
     Label(Idea_panel,
@@ -163,7 +189,8 @@ def Upload_gui_load():
         fg="white",
         bg=Main_window_colour).place(relx=0.05,rely=0.1)
 
-    Frame(Main_win,background=Main_window_colour).place(relx=0.23,rely=0.34,relheight=1,relwidth=1)
+    Frame(Main_win,
+        background=Main_window_colour).place(relx=0.23,rely=0.34,relheight=1,relwidth=1)
     global Output_box,log_widget,Log_text
 
     Output_box = Frame(Main_win,background="#7476A7")
@@ -179,8 +206,14 @@ def Upload_gui_load():
 
     Label(Output_box,text= 'Console Output',font=Font,background="#7476A7").place(relx=0,rely=0)
 
-    Button(Main_win, text='Choose Image', font=Font,fg="white",bg=Main_window_colour,command = Choose_File).place(relx=0.3, rely=0.41,relheight = 0.08,relwidth=0.4)
-    Button(Main_win, text='Encode!',font=Font,fg="white",bg=Main_window_colour,command = lambda : Thread(target=Enc_cmd).start()).place(relx=0.8, rely=0.41,relheight = 0.08,relwidth=0.15)
+    Button(Main_win, text='Choose Image',
+                font=Font,fg="white",
+                bg=Main_window_colour,
+                command = Choose_File).place(relx=0.3, rely=0.41,relheight = 0.08,relwidth=0.4)
+    Button(Main_win, text='Encode!',
+                font=Font,fg="white",
+                bg=Main_window_colour,
+                command = lambda : Thread(target=Enc_cmd).start()).place(relx=0.8, rely=0.41,relheight = 0.08,relwidth=0.15)
 
 def Enc_cmd():
     log_widget.delete(2.0,END)
@@ -224,7 +257,9 @@ def Enc_cmd():
 
                 if len(results) == 0: ID = 1
                 else: ID = results[len(results)-1][0]+1
-                connector.execute('INSERT INTO Img_database (Img_ID, ImageNAME, DATA, UserName) VALUES (?,?,?,?)', (ID,Img_name,Img_data,UName))
+                connector.execute("""
+INSERT INTO Img_database (Img_ID, ImageNAME, DATA, UserName)
+VALUES (?,?,?,?)""", (ID,Img_name,Img_data,UName))
                 connector.commit()
 
                 dte = ED.Give_time_and_date()
@@ -308,7 +343,7 @@ def Download_gui_load():
     tree.column('#1', width = 40,stretch = YES)
 
     tree.place(relx = 0.26,y = 280,relheight = 0.37,relwidth = 0.6)
-    Display_records()
+    Display_records('Download')
     try:Log_text= log_widget.get("1.0",END)
     except:pass
 
@@ -318,12 +353,70 @@ It uses a custom encoding and decoding algorithem to secure your image files.
 """
 
 def Info_Show():
-    image = Image.open(r"./Assets/Info_bg.png")
-    image=image.resize((1020 ,600),Image.LANCZOS)
-    Info_bg_img = ImageTk.PhotoImage(image)
-    Info_bg = Button(Main_win,image = Info_bg_img,borderwidth = 0,highlightthickness = 0,command=lambda:print('SUI'))
-    Info_bg.place(x=0,y=0)
-    #return
+    global Info_label,Info_Frame, Account_Img,Account_Name,Close_Button,Account_Type
+
+    Info_label.place(x=0,y=0)
+    Info_Frame.place(relx=0.05,rely=0.05,height=550,width=910)
+    Account_Img.place(relx=0.45,rely=0.15)
+    Account_Name.place(relx=0.3,rely=0.4)
+    Account_Type.place(relx=0.3,rely=0.47)
+    Close_Button.place(relx=0.9,rely=0.1)
+    return
+
+def Close_Info_UI():
+    global Info_label,Info_Frame, Account_Img,Account_Name,Close_Button,Account_Type
+
+    Info_label.place_forget()
+    Info_Frame.place_forget()
+    Account_Img.place_forget()
+    Account_Name.place_forget()
+    Account_Type.place_forget()
+    Close_Button.place_forget()
+    return
+
+def Accounts_UI():
+    Insight_text = """
+    From here, the admin can edit or modify the accounts present in the database.
+    However, the admin will require the user's password for changing this
+    """
+    # Hider frame for Insight text
+    Frame(Idea_panel,
+            bg=Main_window_colour).place(relx=0,
+                                        rely=0.45,
+                                        relheight=1,
+                                        relwidth=1)
+
+    # Places Insight text
+    Label(Idea_panel,text=Insight_text,font=("Bahnschrift Light",12),fg="white",bg=Main_window_colour).place(relx=0.1,rely=0.3)
+
+    # Places text 'Insight'
+    Label(Idea_panel,
+        text="Insight",
+        font=("Bahnschrift Bold",20),
+        fg="white",
+        bg=Main_window_colour).place(relx=0.05,rely=0.1)
+
+    Frame(Main_win,background=Main_window_colour).place(relx=0.23,rely=0.34,relheight=1,relwidth=1)
+
+    global tree
+    tree = ttk.Treeview(Main_win,height = 100,selectmode=BROWSE,columns=('Sr_No','Name','Acc type','Date created'))
+
+    tree.heading('Sr_No', text='Sr_No', anchor=W)
+    tree.column('#0', width = 0,stretch = NO)
+
+    tree.heading('Name', text='Name', anchor=W)
+    tree.column('#1', width = 40,stretch = YES)
+
+    tree.heading('Acc type', text='Acc type',anchor=W)
+    tree.column('#2', width = 40,stretch = YES)
+
+    tree.heading('Date created', text='Date created',anchor=W)
+    tree.column('#3', width = 40,stretch = YES)
+
+    tree.place(relx = 0.26,y = 280,relheight = 0.37,relwidth = 0.6)
+    Display_records('Accounts')
+
+
 Main_win = Tk()
 
 Main_window_colour = '#28293F'
@@ -356,13 +449,13 @@ Label(Main_win,
 
 if AccType == 'Admin':
     # Sets user img as Admin user
-    image = Image.open(r"./Assets/Admin_acc.png")
+    Acc_image = Image.open(r"./Assets/Admin_acc.png")
 else:
     # Sets user img as Regular user
-    image = Image.open(r"./Assets/Acc_img.png")
+    Acc_image = Image.open(r"./Assets/Acc_img.png")
 
-image  =image.resize((50 ,50),Image.LANCZOS)
-Acc_photo = ImageTk.PhotoImage(image)
+Acc_image1  = Acc_image.resize((50 ,50),Image.LANCZOS)
+Acc_photo = ImageTk.PhotoImage(Acc_image1)
 image_label = Label(Main_win,image = Acc_photo,borderwidth = 0,highlightthickness = 0)
 
 # Places user img on the top right hand corner
@@ -416,6 +509,38 @@ image=image.resize((30 ,30),Image.LANCZOS)
 Info_img = ImageTk.PhotoImage(image)
 Info_Button = Button(Side_panel,image = Info_img,borderwidth = 0,highlightthickness = 0,command=Info_Show)
 
+# Info UI
+image = Image.open(r"./Assets/Info_bg.png")
+image=image.resize((1020 ,600),Image.LANCZOS)
+Info_bg_img = ImageTk.PhotoImage(image)
+Info_label = Button(Main_win,
+            image = Info_bg_img,
+            borderwidth = 0,
+            highlightthickness = 0,
+            command=Close_Info_UI)
+
+Info_Frame = Frame(Main_win,bg='#202060')
+
+Acc_image2  = Acc_image.resize((100 ,100),Image.LANCZOS)
+Acc_photo2 = ImageTk.PhotoImage(Acc_image2)
+Account_Img = Label(Info_Frame,image= Acc_photo2,borderwidth = 1,highlightthickness = 0,)
+Account_Name = Label(Info_Frame,
+            text=f'Account Name : {UName}',
+            font=("Bahnschrift light",20),
+            fg='white',
+            bg='#202060')
+Account_Type = Label(Info_Frame,
+            text=f'Account Type : {AccType}',
+            font=("Bahnschrift light",20),
+            fg='white',
+            bg='#202060')
+Close_Button = Button(Info_Frame,text='x',
+        borderwidth = 0,
+        highlightthickness = 0,
+        font=("Bahnschrift Bold",20),
+        fg='#ff0000',
+        bg='#202060',
+        command=Close_Info_UI)
 # Places logo on the top left hand corner
 Info_Button.place(relx = 0.18,rely = 0.95)
 
@@ -443,5 +568,16 @@ Button(Side_panel,
                                         rely=0.6,
                                         relheight=0.1,
                                         relwidth=0.7)
+
+# Accounts table
+if AccType == 'Admin':
+    Button(Side_panel,
+            text='Accounts',
+            font=Font,fg="white",
+            bg=Side_panel_colour,
+            command = Accounts_UI).place(relx=0.15,
+                                            rely=0.8,
+                                            relheight=0.1,
+                                            relwidth=0.7)
 
 Main_win.mainloop()
