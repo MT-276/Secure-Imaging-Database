@@ -15,7 +15,7 @@ from tkinter import ttk
 from tkinter.filedialog import askopenfilename
 import tkinter.messagebox as mb
 import tkinter.scrolledtext as st
-from threading import Thread
+from threading import Thread,enumerate
 import ED,os,sys,time,sqlite3,Account_login_GUI,random
 from PIL import ImageTk, Image
 
@@ -44,6 +44,12 @@ Status VARCHAR(10)
 connector.commit()
 
 def Choose_File():
+    # Gets the names of the threads currently running.
+    # If there is an ongoing encode, this will prevent another from starting
+    for thread in enumerate():
+        if "Enc_cmd" in str(thread.name):
+            log_widget.insert(tk.INSERT,f"\n{ED.Give_time_and_date()} >> An encode is ongoing please wait.")
+            return
     global filename
     while True:
         # Open a file dialog to choose a file
@@ -221,33 +227,20 @@ def Enc_cmd():
         # Shows an error if no file has been chosen
         mb.showerror("ERROR","You have not yet entered the file path.")
         return None
-    dte = ED.Give_time_and_date()
-    Tmp_str ="\n"+dte+" >> Loading image..."
-    log_widget.insert(tk.INSERT,Tmp_str)
+    log_widget.insert(tk.INSERT,f"\n{ED.Give_time_and_date()} >> Loading image...")
 
     try:
         # Load the chosen image
         ED.Loading_image(filename)
+        log_widget.insert(tk.INSERT,f"\n{ED.Give_time_and_date()} >> Encoding image...")
 
-        dte = ED.Give_time_and_date()
-        Tmp_str ="\n"+dte+" >> Encoding image..."
-        log_widget.insert(tk.INSERT,Tmp_str)
         try:
             # Encode the image
             tme,Img_name,Img_data = ED.Encode_img()
 
-            dte = ED.Give_time_and_date()
-            Tmp_str ="\n"+dte+" >> Image Encoded"
-            log_widget.insert(tk.INSERT,Tmp_str)
-
-            dte = ED.Give_time_and_date()
-            Extra_ = " >>"+tme
-            Tmp_str ="\n"+dte+Extra_
-            log_widget.insert(tk.INSERT,Tmp_str)
-
-            dte = ED.Give_time_and_date()
-            Tmp_str ="\n"+dte+" >> Saving data to database..."
-            log_widget.insert(tk.INSERT,Tmp_str)
+            log_widget.insert(tk.INSERT,f"\n{ED.Give_time_and_date()} >> Image Encoded")
+            log_widget.insert(tk.INSERT,f"\n{ED.Give_time_and_date()} >>{tme}")
+            log_widget.insert(tk.INSERT,f"\n{ED.Give_time_and_date()} >> Saving data to database...")
 
             try:
                 connector = sqlite3.connect('Image_database.db')
@@ -255,30 +248,26 @@ def Enc_cmd():
                 cursor.execute("select * from Img_database")
                 results = cursor.fetchall()
 
-                if len(results) == 0: ID = 1
-                else: ID = results[len(results)-1][0]+1
+                if len(results) == 0:
+                    ID = 1
+                else:
+                    ID = results[len(results)-1][0]+1
                 connector.execute("""
 INSERT INTO Img_database (Img_ID, ImageNAME, DATA, UserName)
 VALUES (?,?,?,?)""", (ID,Img_name,Img_data,UName))
                 connector.commit()
 
-                dte = ED.Give_time_and_date()
-                Tmp_str ="\n"+dte+" >> Saved successfully"
-                log_widget.insert(tk.INSERT,Tmp_str)
+                log_widget.insert(tk.INSERT,f"\n{ED.Give_time_and_date()} >> Saved successfully")
             except:
-                dte = ED.Give_time_and_date()
-                Tmp_str ="\n"+dte+" >> [ERROR] Save Failed"
-                log_widget.insert(tk.INSERT,Tmp_str)                                        # Shows an error if saving fails
+                # Shows an error if saving fails
+                log_widget.insert(tk.INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] Save Failed")
+
         except:
             # Shows an error if encoding fails
-            dte = ED.Give_time_and_date()
-            Tmp_str ="\n"+dte+" >> [ERROR] Encoding failed"
-            log_widget.insert(tk.INSERT,Tmp_str)
+            log_widget.insert(tk.INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] Encoding failed")
     except:
         # Shows an error if the image path is invalid
-        dte = ED.Give_time_and_date()
-        Tmp_str ="\n"+dte+" >> [ERROR] The path of the image is invalid."
-        log_widget.insert(tk.INSERT,Tmp_str)
+        log_widget.insert(tk.INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] The path of the image is invalid.")
 
 
     del Tmp_str,dte
@@ -345,34 +334,8 @@ def Download_gui_load():
     tree.place(relx = 0.26,y = 280,relheight = 0.37,relwidth = 0.6)
     Display_records('Download')
     try:Log_text= log_widget.get("1.0",END)
-    except:pass
-
-Insight_text = """
-Secure Imaging database is a project inspired by Google Photos.
-It uses a custom encoding and decoding algorithem to secure your image files.
-"""
-
-def Info_Show():
-    global Info_label,Info_Frame, Account_Img,Account_Name,Close_Button,Account_Type
-
-    Info_label.place(x=0,y=0)
-    Info_Frame.place(relx=0.05,rely=0.05,height=550,width=910)
-    Account_Img.place(relx=0.45,rely=0.15)
-    Account_Name.place(relx=0.3,rely=0.4)
-    Account_Type.place(relx=0.3,rely=0.47)
-    Close_Button.place(relx=0.9,rely=0.1)
-    return
-
-def Close_Info_UI():
-    global Info_label,Info_Frame, Account_Img,Account_Name,Close_Button,Account_Type
-
-    Info_label.place_forget()
-    Info_Frame.place_forget()
-    Account_Img.place_forget()
-    Account_Name.place_forget()
-    Account_Type.place_forget()
-    Close_Button.place_forget()
-    return
+    except:
+        pass
 
 def Accounts_UI():
     Insight_text = """
@@ -476,6 +439,10 @@ Idea_panel = Frame(Main_win,background=Main_window_colour)
 Idea_panel.place(relx = 0.264,rely = 0.125,relheight = 0.19,relwidth = 0.66)
 
 # Places Insight text
+Insight_text = """
+Secure Imaging database is a project inspired by Google Photos.
+It uses a custom encoding and decoding algorithem to secure your image files.
+"""
 Label(Idea_panel,text=Insight_text,font=("Bahnschrift Light",12),fg="white",bg=Main_window_colour).place(relx=0.1,rely=0.3)
 
 # Loading Insight Image
@@ -503,46 +470,7 @@ image_label3 = Label(Side_panel,image = Logo,borderwidth = 0,highlightthickness 
 # Places logo on the top left hand corner
 image_label3.place(relx = 0.18,rely = 0.1)
 
-# Info Image
-image = Image.open(r"./Assets/Info.png")
-image=image.resize((30 ,30),Image.LANCZOS)
-Info_img = ImageTk.PhotoImage(image)
-Info_Button = Button(Side_panel,image = Info_img,borderwidth = 0,highlightthickness = 0,command=Info_Show)
 
-# Info UI
-image = Image.open(r"./Assets/Info_bg.png")
-image=image.resize((1020 ,600),Image.LANCZOS)
-Info_bg_img = ImageTk.PhotoImage(image)
-Info_label = Button(Main_win,
-            image = Info_bg_img,
-            borderwidth = 0,
-            highlightthickness = 0,
-            command=Close_Info_UI)
-
-Info_Frame = Frame(Main_win,bg='#202060')
-
-Acc_image2  = Acc_image.resize((100 ,100),Image.LANCZOS)
-Acc_photo2 = ImageTk.PhotoImage(Acc_image2)
-Account_Img = Label(Info_Frame,image= Acc_photo2,borderwidth = 1,highlightthickness = 0,)
-Account_Name = Label(Info_Frame,
-            text=f'Account Name : {UName}',
-            font=("Bahnschrift light",20),
-            fg='white',
-            bg='#202060')
-Account_Type = Label(Info_Frame,
-            text=f'Account Type : {AccType}',
-            font=("Bahnschrift light",20),
-            fg='white',
-            bg='#202060')
-Close_Button = Button(Info_Frame,text='x',
-        borderwidth = 0,
-        highlightthickness = 0,
-        font=("Bahnschrift Bold",20),
-        fg='#ff0000',
-        bg='#202060',
-        command=Close_Info_UI)
-# Places logo on the top left hand corner
-Info_Button.place(relx = 0.18,rely = 0.95)
 
 
 Label(Side_panel,
