@@ -8,22 +8,32 @@
 #
 # Lead Dev : Meit Sant
 #-------------------------------------------------------------------------------
-
-import tkinter as tk
-from tkinter import *
-from tkinter import ttk
+'''
+These imports are highly specific. No wildcard imports were made.
+(Wildcard imports are those which import everything into the script.
+Eg: 'from pandas import *' or just 'import pandas')
+'''
+from os import listdir
+from sys import exit
+from tkinter import Tk,ttk,Frame,Button,Label,END,BROWSE,W,YES,NO,INSERT
 from tkinter.filedialog import askopenfilename
 import tkinter.messagebox as mb
 import tkinter.scrolledtext as st
 from threading import Thread,enumerate
-import ED,os,sys,time,sqlite3,Account_login_GUI,random
+from random import choice
 from PIL import ImageTk, Image
+from Account_login_GUI import Login_UI
+import ED,sqlite3
 
-Account_login_GUI.Login_UI()
+# This will open the Login UI where the user must either register a new account or login with an existing account.
+Login_UI()
 try:
-    UName,AccType = Account_login_GUI.UName,Account_login_GUI.AccType
+    # Trying to fetch Username and Account type if successfully logged in.
+    from Account_login_GUI import UName,AccType
+    UName,AccType = UName,AccType
 except:
-    sys.exit()
+    # Will exit if login window closed or couldn't fetch Username and Account type.
+    exit()
 
 ##UName,AccType = 'Meit','Admin'  # Set the username and account type (Temp)
 global mode
@@ -43,12 +53,14 @@ Status VARCHAR(10)
 """)
 connector.commit()
 
+'''
+FUNCTIONS :
+'''
 def Choose_File():
-    # Gets the names of the threads currently running.
-    # If there is an ongoing encode, this will prevent another from starting
+    # This gets the names of the threads currently running. If there is an ongoing encode, this will prevent another from starting.
     for thread in enumerate():
         if "Enc_cmd" in str(thread.name):
-            log_widget.insert(tk.INSERT,f"\n{ED.Give_time_and_date()} >> An encode is ongoing please wait.")
+            log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> An encode is ongoing please wait.")
             return
     global filename
     while True:
@@ -57,28 +69,29 @@ def Choose_File():
         if filename == '': return
         elif 'png' not in filename and 'jpg' not in filename:
             # Shows an error if the file type is not supported
-            mb.showerror("ERROR","The file type is invalid. Only jpg and PNG images are supported")
+            mb.showerror("ERROR","The file type is invalid. Only JPG and PNG images are supported")
         else: break
     log_widget.delete(1.0,END)
-    log_widget.insert(tk.INSERT,f"{ED.Give_time_and_date()} >> File chosen - '{filename}'")
+    log_widget.insert(INSERT,f"{ED.Give_time_and_date()} >> File chosen - '{filename}'")
 
 def Display_records(view):
     # Clear the treeview
     tree.delete(*tree.get_children())
 
-    # Extract data from database according to view.
+    # Fetch data from database according to view.
     if view == 'Download':
+        # Fetching data from the db
         curr = connector.execute('SELECT * FROM img_database;')
         data = curr.fetchall()
         i = 0
         for records in data:
-            # Skips entry of images not uploaded by the logged on user.
+            # Skips entry of images not uploaded by the logged on user. [UNLESS ADMIN]
             if AccType != 'Admin' and records[3] != UName: continue
-            # Skips deleted entries
+            # Skips deleted entries [UNLESS ADMIN]
             if AccType != 'Admin' and records[4] == 'Deleted': continue
             i+=1
             if AccType == 'Admin':
-                # Insert the records into the treeview with user's name
+                # Insert the records into the treeview with user's name [UNLESS ADMIN]
                 if records[4] == None:
                     Status = '-'
                 else:
@@ -87,8 +100,9 @@ def Display_records(view):
             else:
                 # Insert the records into the treeview
                 tree.insert('', END, values=(i,records[1]))
-        del i,data
+        del i,Status,records,data
     if view == 'Accounts':
+        # Fetching data from the db
         curr = connector.execute('SELECT * From Acc_database')
         data = curr.fetchall()
         i = 0
@@ -99,7 +113,7 @@ def Display_records(view):
             else:
                 Ac_type = 'Admin'
             tree.insert('', END, values=(i,records[1],Ac_type,records[4]))
-        del i,data
+        del i,Ac_type,data
 
 def Download_record():
     # Shows an error if no item is selected
@@ -206,7 +220,7 @@ def Upload_gui_load():
     log_widget.place(relx=0, rely=0.2, relheight=0.8, relwidth=1.04)
 
     try:
-        log_widget.insert(tk.INSERT,Log_text)
+        log_widget.insert(INSERT,Log_text)
         del Log_text
     except: pass
 
@@ -227,20 +241,20 @@ def Enc_cmd():
         # Shows an error if no file has been chosen
         mb.showerror("ERROR","You have not yet entered the file path.")
         return None
-    log_widget.insert(tk.INSERT,f"\n{ED.Give_time_and_date()} >> Loading image...")
+    log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> Loading image...")
 
     try:
         # Load the chosen image
         ED.Loading_image(filename)
-        log_widget.insert(tk.INSERT,f"\n{ED.Give_time_and_date()} >> Encoding image...")
+        log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> Encoding image...")
 
         try:
             # Encode the image
             tme,Img_name,Img_data = ED.Encode_img()
 
-            log_widget.insert(tk.INSERT,f"\n{ED.Give_time_and_date()} >> Image Encoded")
-            log_widget.insert(tk.INSERT,f"\n{ED.Give_time_and_date()} >>{tme}")
-            log_widget.insert(tk.INSERT,f"\n{ED.Give_time_and_date()} >> Saving data to database...")
+            log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> Image Encoded")
+            log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >>{tme}")
+            log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> Saving data to database...")
 
             try:
                 connector = sqlite3.connect('Image_database.db')
@@ -257,20 +271,18 @@ INSERT INTO Img_database (Img_ID, ImageNAME, DATA, UserName)
 VALUES (?,?,?,?)""", (ID,Img_name,Img_data,UName))
                 connector.commit()
 
-                log_widget.insert(tk.INSERT,f"\n{ED.Give_time_and_date()} >> Saved successfully")
+                log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> Saved successfully")
             except:
                 # Shows an error if saving fails
-                log_widget.insert(tk.INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] Save Failed")
+                log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] Save Failed")
 
         except:
             # Shows an error if encoding fails
-            log_widget.insert(tk.INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] Encoding failed")
+            log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] Encoding failed")
     except:
         # Shows an error if the image path is invalid
-        log_widget.insert(tk.INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] The path of the image is invalid.")
+        log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] The path of the image is invalid.")
 
-
-    del Tmp_str,dte
     return
 
 def Download_gui_load():
@@ -425,8 +437,8 @@ image_label = Label(Main_win,image = Acc_photo,borderwidth = 0,highlightthicknes
 image_label.place(relx = 0.93,rely = 0.02)
 
 # Randomizes the Home Screen image
-dir_list = os.listdir(r"./Assets/HomeScr_photos")
-image1 = Image.open(f"./Assets/HomeScr_photos/{random.choice(dir_list)}")
+dir_list = listdir(r"./Assets/HomeScr_photos")
+image1 = Image.open(f"./Assets/HomeScr_photos/{choice(dir_list)}")
 
 # Displays the Home screen image
 image1=image1.resize((600 ,350),Image.LANCZOS)

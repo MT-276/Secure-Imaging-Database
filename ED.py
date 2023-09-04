@@ -204,14 +204,7 @@ def Loading_image(Image_path):
         if Debug_mode is True:
             print("\n",Image_path)
         sys.exit()
-
-    # Loading the image
-    pix = im.load()
-    # Obtaining size of image
-    m,n=im.size
-    Encoded =""
     NIP = Image_path
-
     del F
 
 def Encode_img():
@@ -232,23 +225,27 @@ def Encode_img():
     n = no. of columns
     pix[i,j] --> Gets the RGB data of the pixel
     """
-    try:
-        for i in range(m):
-            for j in range(n):
-                tup = pix[i,j]
-                for k in tup:
-                    # RGB value encoded via Encode() function
-                    E,C = Encode(k)
-                    Encoded+=str(E)
-                    Encoded+=str(C)
-                    Img_data+=Encoded
-                    Encoded = ''
 
-        Img_data+=("."+str(m)+"?"+str(n))
+    # Loading the image
+    pix = im.load()
+    # Obtaining size of image
+    m,n=im.size
+    Encoded =""
 
-    except:
-        print("[ERROR] Encoding failed")
-        sys.exit()
+    for i in range(m):
+        for j in range(n):
+            tup = pix[i,j]
+            for k in tup:
+                # RGB value encoded via Encode() function
+                E,C = Encode(k)
+                Encoded+=str(E)
+                Encoded+=str(C)
+                Img_data+=Encoded
+                Encoded = ''
+
+    Img_data+=("."+str(m)+"?"+str(n))
+
+
     del m,n,i,j,tup,k,E,C
     """
     Checking if there was a temp JPG image created
