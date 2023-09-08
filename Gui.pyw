@@ -13,6 +13,7 @@ These imports are highly specific. No wildcard imports were made.
 (Wildcard imports are those which import everything into the script.
 Eg: 'from pandas import *' or just 'import pandas')
 '''
+
 from os import listdir
 from sys import exit
 from tkinter import Tk,ttk,Frame,Button,Label,END,BROWSE,W,YES,NO,INSERT
@@ -113,7 +114,7 @@ def Display_records(view):
             else:
                 Ac_type = 'Admin'
             tree.insert('', END, values=(i,records[1],Ac_type,records[4]))
-        del i,Ac_type,data
+        del i,data
 
 def Download_record():
     # Shows an error if no item is selected

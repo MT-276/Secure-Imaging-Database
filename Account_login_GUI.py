@@ -9,16 +9,20 @@
 #
 # Lead Dev : Meit Sant
 #-------------------------------------------------------------------------------
+'''
+These imports are highly specific. No wildcard imports were made.
+(Wildcard imports are those which import everything into the script.
+Eg: 'from pandas import *' or just 'import pandas')
+'''
 
-import sys, sqlite3
-from tkinter import *
+import sqlite3
 import tkinter.messagebox as mb
-from tkinter import simpledialog
+from tkinter import Tk,Frame,Button,Label,Entry,IntVar,END,Checkbutton,simpledialog
 from PIL import ImageTk, Image
 from ED import Encrypt_Pwd
 global AccType, Font, Password, Pwd, UName, Username
 
-allow_bypass = True
+allow_bypass = False
 
 Font = ("Bahnschrift Bold", 12)
 

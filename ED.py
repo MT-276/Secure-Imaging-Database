@@ -8,59 +8,54 @@
 #
 # Lead Dev : Meit Sant
 #-------------------------------------------------------------------------------
-import sys
+'''
+These imports are highly specific. No wildcard imports were made.
+(Wildcard imports are those which import everything into the script.
+Eg: 'from pandas import *' or just 'import pandas')
+'''
+
+from os import getlogin,mkdir,startfile,remove,system
+from sys import exit
+from random import randint
+from time import perf_counter
+from PIL import Image
+
 Debug_mode = False
 
-try:
-    # Importing third-party libraries
-    from PIL import Image
-    import os,time,random
-except ModuleNotFoundError:
-    print("\n[ERROR] An error occured while loading modules\nAttempting to download libraries...")
-    from os import system
-    try:
-        # Attempting to download libraries if not found
-        system("pip install Pillow==9.5.0 --user")
-        from PIL import Image
-    except ImportError:
-        print("""
-[ERROR] An error occured while downloading modules
-Please try again or contact dev
-              """)
-        sys.exit()
-
 def Encrypt_Pwd(Password):
-    """
+    '''
     Explanation of str(bin(ord(i))[2:]):
 
     1. ord(i): Obtains the Unicode code point of the character `i`.
     2. bin(ord(i)): Converts the Unicode code point to its binary representation as a string.
     3. [2:]: Removes the first two characters (`"0b"`) from the binary string.
     4. str(): Converts the resulting binary string to a regular string.
-    """
+    '''
     Encrypted_Password = ''
-    for i in Password: Encrypted_Password += str(bin(ord(i))[2:]) + ' '
+    for i in Password:
+        Encrypted_Password += str(bin(ord(i))[2:]) + ' '
     return Encrypted_Password
 
 def Decrypt_Pwd(Encrypted_Password):
-    """
+    '''
     Explanation of chr(int(j, 2)):
 
     1. int(j, 2): Converts the binary string j to an integer using base 2.
     2. chr(): Converts the integer back to its corresponding Unicode character representation.
-    """
+    '''
     Password = ''
     for i in Encrypted_Password.split(' '):
-        if i == '': return Password
-        else: Password += chr(int(i, 2))
+        if i == '':
+            return Password
+        Password += chr(int(i, 2))
     return Password
 
 def Encode(Nums):
-    """
+    '''
     Encodes specific pixel colour data to
     numeric encrypted data.
     Example : 255 = 3fS-
-    """
+    '''
     Nums = str(Nums)
 
     # Checks if the provided data is a 3 digit no. or not
@@ -81,7 +76,7 @@ def Encode(Nums):
     l3 = ["!","@","#","$","%","^","&","*","-","~","="]
 
     # Selects a random Key
-    Key = random.randint(0,9)
+    Key = randint(0,9)
 
     for i in Nums:
         if i != "N":
@@ -93,7 +88,7 @@ def Encode(Nums):
 
 
             # Selecting one of the char lists
-            Hash = random.randint(1,3)
+            Hash = randint(1,3)
 
             if Hash == 1:
                 Computed_nums_lst.append(l1[pointer])
@@ -103,7 +98,7 @@ def Encode(Nums):
                 Computed_nums_lst.append(l3[pointer])
         # Else condition where value of 'i' is "none"
         else:
-            Hash = random.randint(1,3)
+            Hash = randint(1,3)
             if Hash == 1:
                 Computed_nums_lst.append(l1[10])
             if Hash == 2:
@@ -120,7 +115,12 @@ def Encode(Nums):
     return Key,Computed_nums
 
 def Decode(Hashed_str):
-    #Todo Add Docstring (Decode)
+    '''
+    This function will decode each singular encoded
+    bit into different pixel datas, which will
+    later be all arranged into a picture, just like
+    manually placing a line of dominos.
+    '''
     decoded = ""
     # Key-Value table
 
@@ -158,19 +158,22 @@ def Decode(Hashed_str):
     return decoded
 
 def Convert_to_JPG(path):
-    F = "\\"
-    F = path.split(F)
-    F = F[-1]
-    F = F.split(".")
-    F = F[0]
-    new_path = F+".jpg"
+    '''
+    The program only works with JPG type images.
+    Hence, other types of images such as PNG will
+    be temporalily converted and then deleted once
+    encode is finished. Example:
+    Input : D:\\User\\Pictures\\Cat.png
+    Output : Cat.jpg
+    '''
+    new_path = (path.split("\\")[-1].split(".")[0])+".jpg"
     im = Image.open(path)
     # Converting to jpg format
     im4 = im.convert('RGB')
     # Saving temp jpg image
     im4.save(new_path)
 
-    del im4,F
+    del im4
     return new_path
 
 def Loading_image(Image_path):
@@ -183,27 +186,24 @@ def Loading_image(Image_path):
         Image_path = Image_path.replace("/","\\")
     try:
 
-        F = Image_path.split("\\")
-        F = F[-1]
-        F = F.split(".")
-        F = F[1]
+        F = Image_path.split("\\")[-1].split(".")[1]
         Delete = False
         if F != "jpg":
-            """
+            '''
             This program works only on jpg files and hence
             will convert any non-jpg files to a temp jpg image
             and will delete the temp jpg after execution.
-            """
+            '''
             Image_path = Convert_to_JPG(Image_path)
             Delete = True
         im = Image.open(Image_path)
-        start_time = time.perf_counter ()
+        start_time = perf_counter()
 
     except:
         print("The path of the image is invalid, please try again!")
         if Debug_mode is True:
             print("\n",Image_path)
-        sys.exit()
+        exit()
     NIP = Image_path
     del F
 
@@ -212,19 +212,15 @@ def Encode_img():
 
     #---------------------- Encoding ----------------------
 
-    F = NIP.split("\\")
-    F = F[-1]
-    F = F.split(".")
-    F = F[0]
-    Img_name = F
+    Img_name = NIP.split("\\")[-1].split(".")[0]
     Img_data = ''
 
-    """
+    '''
     Here,
     m = no. of rows
     n = no. of columns
     pix[i,j] --> Gets the RGB data of the pixel
-    """
+    '''
 
     # Loading the image
     pix = im.load()
@@ -247,20 +243,20 @@ def Encode_img():
 
 
     del m,n,i,j,tup,k,E,C
-    """
+    '''
     Checking if there was a temp JPG image created
     in case the image was of a different format
     and delete it.
-    """
+    '''
     if Delete is True:
-          os.remove(NIP)
+        remove(NIP)
     del Delete,F,Encoded
     return Tell_time(start_time),Img_name,Img_data
 
 def Decode_data(Img_name,Encoded_inp):
 
     # Starts the timer for processing
-    start_time = time.perf_counter ()
+    start_time = perf_counter ()
     Decoded_lst = []
     Decoded_lst1 = []
     pixel_data = []
@@ -302,7 +298,7 @@ def Decode_data(Img_name,Encoded_inp):
         m,n = int(Dimension_lst[0]),int(Dimension_lst[1])
     except:
         print("\n[ERROR] Decryption Failed. Please verify file contents")
-        sys.exit()
+        exit()
 
     del Encoded_inp
 
@@ -326,17 +322,17 @@ def Decode_data(Img_name,Encoded_inp):
         print("\n[ERROR] Image Generation Failed")
         if Debug_mode is True:
             print("\n",m,"x",n,"\n",index,"\n",Img_name)
-        sys.exit()
+        exit()
 
     del index,color,m,n
 
     #---------------------- Saving Image ----------------------
     print("\nSaving Image...")
     try:
-        Windows_user_name = os.getlogin()
+        Windows_user_name = getlogin()
         path = f'C:\\Users\\{Windows_user_name}\\Downloads\\Pictures'
-        os.mkdir(path)
-        sys.exit()
+        mkdir(path)
+        exit()
     except:
         pass
 
@@ -345,30 +341,29 @@ def Decode_data(Img_name,Encoded_inp):
         image.save(f'{path}\\{Img_name}.png')
     except:
         print("[ERROR] Image was not saved.")
-        sys.exit()
+        exit()
     print("Image saved succesfully")
-##    os.startfile(f'{path}\\{Img_name}.png')
+##    startfile(f'{path}\\{Img_name}.png')
     Tell_time(start_time)
     del image,Windows_user_name,path
     return
 
 def Tell_time(start_time):
-    end_time = time.perf_counter ()
+    end_time = perf_counter ()
     ao = (end_time - start_time)//1
     if ao>=60:
         ao = str(ao//60) +" Min " + str(ao%60)
     del end_time
     # Calculates and prints the time taken for execution of the program
-    return (" Time for execution : "+str(int(ao))+ " Sec")
+    return " Time for execution : "+str(int(ao))+ " Sec"
 
 def Give_time_and_date():
     """
     As name suggests, it returns the current time
     and date for the console output.
     """
-    from datetime import date
-    from datetime import datetime
-    now = datetime.now()
+    from datetime import date, datetime, now
+    now = now()
     current_time = now.strftime("%H:%M:%S")
     today = date.today()
     dte = today.strftime("%b-%d-%Y")
