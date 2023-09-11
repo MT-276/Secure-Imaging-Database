@@ -349,13 +349,13 @@ def Decode_data(Img_name,Encoded_inp):
     return
 
 def Tell_time(start_time):
-    end_time = perf_counter ()
+    end_time = time.perf_counter ()
     ao = (end_time - start_time)//1
     if ao>=60:
-        ao = str(ao//60) +" Min " + str(ao%60)
+        ao = str(int(ao//60)) +" Min " + str(int(ao%60))
     del end_time
     # Calculates and prints the time taken for execution of the program
-    return " Time for execution : "+str(int(ao))+ " Sec"
+    return (f" Time for execution : {ao} Sec")
 
 def Give_time_and_date():
     """
