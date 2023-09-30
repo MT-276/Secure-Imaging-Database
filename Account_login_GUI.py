@@ -4,7 +4,7 @@
 #
 # Author:      MS Productions
 #
-# Created:     09 04 2023
+# Created:     09 05 2023
 # Copyright:   (c)MS Productions
 #
 # Lead Dev : Meit Sant
@@ -22,7 +22,8 @@ from PIL import ImageTk, Image
 from ED import Encrypt_Pwd
 global AccType, Font, Password, Pwd, UName, Username
 
-allow_bypass = False
+Allow_Bypass = True
+Set_Admin_Password = 'pwd1212'
 
 Font = ("Bahnschrift Bold", 12)
 
@@ -40,8 +41,8 @@ def Login():
     """
     Logs in User
     """
-    global Username, Password,UName,Pwd,AccType,allow_bypass
-    if allow_bypass is True:
+    global Username, Password,UName,Pwd,AccType,Allow_Bypass
+    if Allow_Bypass is True:
         UName ='Meit'
         AccType ='Admin'
         Login_win.destroy()
@@ -80,7 +81,7 @@ def Register():
         return
     if admin_var.get() == 1:
         admin_password = simpledialog.askstring("Admin Password", "Enter Admin Password:", show='*')
-        if admin_password == "pwd1212":
+        if admin_password == Set_Admin_Password:
             try:
                 connector.execute("INSERT INTO Acc_database (AccNAME, Pwd, AccType, Date_of_creation) VALUES (?,?,'Admin',datetime())",
                     (UName,Encrypt_Pwd(Pwd)))
@@ -112,7 +113,7 @@ def Login_UI():
     """
     Login Window for Secure Imaging Database
     """
-    global Login_win, Username, Password, admin_var,allow_bypass
+    global Login_win, Username, Password, admin_var
 
     # Initialize the login window using Tkinter library
     Login_win = Tk()

@@ -1,5 +1,6 @@
 #-------------------------------------------------------------------------------
-# Name:        Encode and Decode functions.py
+# Name:        ED.py
+# Purpose:     Encode, Decode and other functions
 #
 # Author:      MS Productions
 #
@@ -250,7 +251,7 @@ def Encode_img():
     '''
     if Delete is True:
         remove(NIP)
-    del Delete,F,Encoded
+
     return Tell_time(start_time),Img_name,Img_data
 
 def Decode_data(Img_name,Encoded_inp):
@@ -349,21 +350,22 @@ def Decode_data(Img_name,Encoded_inp):
     return
 
 def Tell_time(start_time):
-    end_time = time.perf_counter ()
+    end_time = perf_counter ()
     ao = (end_time - start_time)//1
     if ao>=60:
-        ao = str(int(ao//60)) +" Min " + str(int(ao%60))
+        ao = str(ao//60) +" Min " + str(ao%60)
     del end_time
     # Calculates and prints the time taken for execution of the program
-    return (f" Time for execution : {ao} Sec")
+    return " Time for execution : "+str(int(ao))+ " Sec"
 
 def Give_time_and_date():
     """
     As name suggests, it returns the current time
     and date for the console output.
     """
-    from datetime import date, datetime, now
-    now = now()
+    import datetime
+    from datetime import date, datetime
+    now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
     today = date.today()
     dte = today.strftime("%b-%d-%Y")

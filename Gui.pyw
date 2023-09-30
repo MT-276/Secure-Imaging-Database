@@ -1,5 +1,6 @@
 #-------------------------------------------------------------------------------
-# Name:        GUI-main.py
+# Name:        Gui.py
+# Purpose:     Main graphical user interface for SID
 #
 # Author:      MS Productions
 #
@@ -9,7 +10,7 @@
 # Lead Dev : Meit Sant
 #-------------------------------------------------------------------------------
 '''
-These imports are highly specific. No wildcard imports were made.
+These imports are highly specific. No wildcard imports were made except an exception of sqlite3.
 (Wildcard imports are those which import everything into the script.
 Eg: 'from pandas import *' or just 'import pandas')
 '''
@@ -24,7 +25,7 @@ from threading import Thread,enumerate
 from random import choice
 from PIL import ImageTk, Image
 from Account_login_GUI import Login_UI
-import ED,sqlite3
+import sqlite3,ED
 
 # This will open the Login UI where the user must either register a new account or login with an existing account.
 Login_UI()
@@ -37,7 +38,6 @@ except:
     exit()
 
 ##UName,AccType = 'Meit','Admin'  # Set the username and account type (Temp)
-global mode
 
 # Connect to the database
 connector = sqlite3.connect('Image_database.db')
@@ -101,7 +101,7 @@ def Display_records(view):
             else:
                 # Insert the records into the treeview
                 tree.insert('', END, values=(i,records[1]))
-        del i,Status,records,data
+
     if view == 'Accounts':
         # Fetching data from the db
         curr = connector.execute('SELECT * From Acc_database')
@@ -118,10 +118,11 @@ def Display_records(view):
 
 def Download_record():
     # Shows an error if no item is selected
-    if not tree.selection(): mb.showerror('ERROR', 'Please select an item from the database')
+    if not tree.selection():
+        mb.showerror('ERROR', 'Please select an item from the database')
+        return
     else:
-        Thread(target=
-            lambda : mb.showinfo('Info','The image will be downloaded after decode is performed.')).start()
+        mb.showinfo('Info','The image will be downloaded after decode is performed.')
         current_item = tree.focus()
         values = tree.item(current_item)
         selection = values["values"]
@@ -137,16 +138,18 @@ def Download_record():
             # Decode the data and save the image
             ED.Decode_data(Img_name,Data[0][0])
             mb.showinfo('Info', 'Image saved successfully')
+            return
         except:
             # Shows an error if decoding fails
             mb.showerror('ERROR', 'Error occured while decoding image. Please try again.')
-        return
+            return
 
-def Delete_Data():
+def Delete_Data(UI_Type):
     if not tree.selection():
         # Shows an error if no item is selected
         mb.showerror('ERROR!', 'Please select an item from the database')
-    else:
+        return
+    if UI_Type == 'Dwnld':
         if mb.askokcancel('Destructive Action - Delete Data',
             'Do you really want to do this ?\nThe Data will be deleted permanently') is True:   # Confirm with the user before deleting data
             current_item = tree.focus()
@@ -171,7 +174,19 @@ WHERE ImageName = ? AND UserName = ? """, (selection[1],UName))
             mb.showinfo('Info', 'The Specified data has succesfully been deleted.')
             Display_records('Download')
         else:
-            pass
+            return
+    else:
+        if mb.askokcancel('Destructive Action - Delete Account',
+            'Do you really want to do this ?\nThe Account will be deleted permanently') is True:   # Confirm with the user before deleting data
+            current_item = tree.focus()
+            values = tree.item(current_item)
+            selection = values["values"]
+            connector.execute('DELETE FROM Acc_database WHERE AccNAME = ?', (selection[1],))
+            connector.commit()
+            Display_records('Accounts')
+            return
+        else:
+            return
 
 def Clear_all():
     # Confirm with the user before clearing all data
@@ -185,7 +200,61 @@ def Clear_all():
     else:
         pass
 
+def Enc_cmd():
+    log_widget.delete(2.0,END)
+    if not 'filename' in globals():
+        # Shows an error if no file has been chosen
+        mb.showerror("ERROR","You have not yet entered the file path.")
+        return None
+    log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> Loading image...")
+
+    try:
+        # Load the chosen image
+        ED.Loading_image(filename)
+        log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> Encoding image...")
+
+        try:
+            # Encode the image
+            tme,Img_name,Img_data = ED.Encode_img()
+
+            log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> Image Encoded")
+            log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >>{tme}")
+            log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> Saving data to database...")
+
+            try:
+                connector = sqlite3.connect('Image_database.db')
+                cursor = connector.cursor()
+                cursor.execute("select * from Img_database")
+                results = cursor.fetchall()
+
+                if len(results) == 0:
+                    ID = 1
+                else:
+                    ID = results[len(results)-1][0]+1
+                connector.execute("""
+INSERT INTO Img_database (Img_ID, ImageNAME, DATA, UserName)
+VALUES (?,?,?,?)""", (ID,Img_name,Img_data,UName))
+                connector.commit()
+
+                log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> Saved successfully")
+            except:
+                # Shows an error if saving fails
+                log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] Save Failed")
+
+        except:
+            # Shows an error if encoding fails
+            log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] Encoding failed")
+    except:
+        # Shows an error if the image path is invalid
+        log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] The path of the image is invalid.")
+    tme,Img_name,Img_data = ED.Encode_img()
+    return
+
 def Upload_gui_load():
+    global mode
+    if mode == 'Upload':
+        return
+    mode = "Upload"
     Insight_text = """
     The program will automatically encode the image chosen with a special encoding
     algorithem. With which all your images will be secure.
@@ -236,58 +305,11 @@ def Upload_gui_load():
                 bg=Main_window_colour,
                 command = lambda : Thread(target=Enc_cmd).start()).place(relx=0.8, rely=0.41,relheight = 0.08,relwidth=0.15)
 
-def Enc_cmd():
-    log_widget.delete(2.0,END)
-    if not 'filename' in globals():
-        # Shows an error if no file has been chosen
-        mb.showerror("ERROR","You have not yet entered the file path.")
-        return None
-    log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> Loading image...")
-
-    try:
-        # Load the chosen image
-        ED.Loading_image(filename)
-        log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> Encoding image...")
-
-        try:
-            # Encode the image
-            tme,Img_name,Img_data = ED.Encode_img()
-
-            log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> Image Encoded")
-            log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >>{tme}")
-            log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> Saving data to database...")
-
-            try:
-                connector = sqlite3.connect('Image_database.db')
-                cursor = connector.cursor()
-                cursor.execute("select * from Img_database")
-                results = cursor.fetchall()
-
-                if len(results) == 0:
-                    ID = 1
-                else:
-                    ID = results[len(results)-1][0]+1
-                connector.execute("""
-INSERT INTO Img_database (Img_ID, ImageNAME, DATA, UserName)
-VALUES (?,?,?,?)""", (ID,Img_name,Img_data,UName))
-                connector.commit()
-
-                log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> Saved successfully")
-            except:
-                # Shows an error if saving fails
-                log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] Save Failed")
-
-        except:
-            # Shows an error if encoding fails
-            log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] Encoding failed")
-    except:
-        # Shows an error if the image path is invalid
-        log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] The path of the image is invalid.")
-
-    return
-
 def Download_gui_load():
-
+    global mode
+    if mode == 'Download':
+        return
+    mode = "Download"
     Insight_text = """
     Please select the name of your desired image. Upon selecting your
     image, it will decode your image and save it in your local downloads folder
@@ -318,9 +340,16 @@ def Download_gui_load():
     Entry(Main_win, textvariable=Key_word, font=("Bahnschrift Light",18)).place(relx=0.26,y=230,relheight=0.06,relwidth=0.4)
     '''
 
-    Button(Main_win, text='Download Image', font=Font,fg="white",bg=Main_window_colour,command= Thread(target=Download_record).start).place(relx=0.8,rely = 0.89,relheight=0.1,relwidth=0.18)
-
-    Button(Main_win, text='Delete Record', font=Font,fg="white",bg=Main_window_colour,command= Delete_Data).place(relx=0.6,rely = 0.89,relheight=0.1,relwidth=0.18)
+    Button(Main_win,
+            text='Download Image',
+            font= Font,fg="white",
+            bg= Main_window_colour,
+            command= lambda : Thread(target=Download_record).start()).place(relx=0.8,rely = 0.89,relheight=0.1,relwidth=0.18)
+    Button(Main_win,
+            text='Delete Record',
+            font=Font,fg="white",
+            bg=Main_window_colour,
+            command= lambda : Delete_Data('Dwnld')).place(relx=0.6,rely = 0.89,relheight=0.1,relwidth=0.18)
 
     if AccType == 'Admin':
         Button(Main_win, text='Clear All', font=Font,fg="white",bg=Main_window_colour,command= Clear_all).place(relx=0.4,rely = 0.89,relheight=0.1,relwidth=0.18)
@@ -351,9 +380,13 @@ def Download_gui_load():
         pass
 
 def Accounts_UI():
+    global mode
+    if mode == 'Accounts':
+        return
+    mode = "Accounts"
     Insight_text = """
-    From here, the admin can edit or modify the accounts present in the database.
-    However, the admin will require the user's password for changing this
+    From here, the admin can view or delete the accounts present in
+    the database.
     """
     # Hider frame for Insight text
     Frame(Idea_panel,
@@ -392,6 +425,11 @@ def Accounts_UI():
     tree.place(relx = 0.26,y = 280,relheight = 0.37,relwidth = 0.6)
     Display_records('Accounts')
 
+    Button(Main_win,
+            text='Delete Account',
+            font=Font,fg="white",
+            bg=Main_window_colour,
+            command= lambda : Delete_Data('Acc')).place(relx=0.8,rely = 0.89,relheight=0.1,relwidth=0.18)
 
 Main_win = Tk()
 
@@ -483,9 +521,6 @@ image_label3 = Label(Side_panel,image = Logo,borderwidth = 0,highlightthickness 
 # Places logo on the top left hand corner
 image_label3.place(relx = 0.18,rely = 0.1)
 
-
-
-
 Label(Side_panel,
         text="Secure Imaging Database",
         font=("Bahnschrift Light",12),
@@ -521,4 +556,5 @@ if AccType == 'Admin':
                                             relheight=0.1,
                                             relwidth=0.7)
 
+mode = 'Home'
 Main_win.mainloop()
