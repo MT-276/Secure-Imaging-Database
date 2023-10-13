@@ -4,7 +4,7 @@
 #
 # Author:      MS Productions
 #
-# Created:     09 04 2023
+# Created:     23 04 2023
 # Copyright:   (c)MS Productions
 #
 # Lead Dev : Meit Sant
@@ -306,10 +306,16 @@ def Upload_gui_load():
                 command = lambda : Thread(target=Enc_cmd).start()).place(relx=0.8, rely=0.41,relheight = 0.08,relwidth=0.15)
 
 def Download_gui_load():
-    global mode
+    global mode     # Declares 'mode' as a global variable.
+
+    # Check if the current mode is already set to 'Download'. If yes, return and do nothing.
     if mode == 'Download':
         return
+
+    # Set the mode to 'Download' to indicate that the user is in the download section.
     mode = "Download"
+
+    # Define the insight text that provides an explanation of this section.
     Insight_text = """
     Please select the name of your desired image. Upon selecting your
     image, it will decode your image and save it in your local downloads folder
@@ -331,6 +337,7 @@ def Download_gui_load():
         fg="white",
         bg=Main_window_colour).place(relx=0.05,rely=0.1)
 
+    # Hider Frame
     Frame(Main_win,background=Main_window_colour).place(relx=0.23,rely=0.34,relheight=1,relwidth=1)
 
     ''' Search Function (Incomplete)
@@ -340,6 +347,7 @@ def Download_gui_load():
     Entry(Main_win, textvariable=Key_word, font=("Bahnschrift Light",18)).place(relx=0.26,y=230,relheight=0.06,relwidth=0.4)
     '''
 
+    # Download Image Button
     Button(Main_win,
             text='Download Image',
             font= Font,fg="white",
@@ -380,56 +388,63 @@ def Download_gui_load():
         pass
 
 def Accounts_UI():
-    global mode
+    '''
+    This function represents the user interface for handling accounts in the application.
+    '''
+    global mode  # Declares 'mode' as a global variable.
+
+    # Check if the current mode is already set to 'Accounts'. If yes, return and do nothing.
     if mode == 'Accounts':
         return
+
+    # Set the mode to 'Accounts' to indicate that the user is in the accounts management section.
     mode = "Accounts"
+
+    # Define the insight text that provides an explanation of this section.
     Insight_text = """
     From here, the admin can view or delete the accounts present in
     the database.
     """
+
     # Hider frame for Insight text
-    Frame(Idea_panel,
-            bg=Main_window_colour).place(relx=0,
-                                        rely=0.45,
-                                        relheight=1,
-                                        relwidth=1)
+    Frame(Idea_panel, bg=Main_window_colour).place(relx=0, rely=0.45, relheight=1, relwidth=1)
 
-    # Places Insight text
-    Label(Idea_panel,text=Insight_text,font=("Bahnschrift Light",12),fg="white",bg=Main_window_colour).place(relx=0.1,rely=0.3)
+    # Places Insight text on the Idea_panel
+    Label(Idea_panel, text=Insight_text, font=("Bahnschrift Light", 12), fg="white", bg=Main_window_colour).place(relx=0.1, rely=0.3)
 
-    # Places text 'Insight'
-    Label(Idea_panel,
-        text="Insight",
-        font=("Bahnschrift Bold",20),
-        fg="white",
-        bg=Main_window_colour).place(relx=0.05,rely=0.1)
+    # Places the text 'Insight'
+    Label(Idea_panel, text="Insight", font=("Bahnschrift Bold", 20), fg="white", bg=Main_window_colour).place(relx=0.05, rely=0.1)
 
-    Frame(Main_win,background=Main_window_colour).place(relx=0.23,rely=0.34,relheight=1,relwidth=1)
+    # Create a frame for the main window with a specified background color
+    Frame(Main_win, background=Main_window_colour).place(relx=0.23, rely=0.34, relheight=1, relwidth=1)
 
-    global tree
-    tree = ttk.Treeview(Main_win,height = 100,selectmode=BROWSE,columns=('Sr_No','Name','Acc type','Date created'))
+    global tree  # Declares 'tree' as a global variable
+    # Create a Treeview widget for displaying data with specified columns
+    tree = ttk.Treeview(Main_win, height=100, selectmode=BROWSE, columns=('Sr_No', 'Name', 'Acc type', 'Date created'))
 
+    # Set column headings and their alignment
     tree.heading('Sr_No', text='Sr_No', anchor=W)
-    tree.column('#0', width = 0,stretch = NO)
+    tree.column('#0', width=0, stretch=NO)  # Adjust column width
 
     tree.heading('Name', text='Name', anchor=W)
-    tree.column('#1', width = 40,stretch = YES)
+    tree.column('#1', width=40, stretch=YES)  # Adjust column width
 
-    tree.heading('Acc type', text='Acc type',anchor=W)
-    tree.column('#2', width = 40,stretch = YES)
+    tree.heading('Acc type', text='Acc type', anchor=W)
+    tree.column('#2', width=40, stretch=YES)  # Adjust column width
 
-    tree.heading('Date created', text='Date created',anchor=W)
-    tree.column('#3', width = 40,stretch = YES)
+    tree.heading('Date created', text='Date created', anchor=W)
+    tree.column('#3', width=40, stretch=YES)  # Adjust column width
 
-    tree.place(relx = 0.26,y = 280,relheight = 0.37,relwidth = 0.6)
+    # Place the Treeview widget on the main window
+    tree.place(relx=0.26, y=280, relheight=0.37, relwidth=0.6)
+
+    # Display records of 'Accounts' in the Treeview
     Display_records('Accounts')
 
-    Button(Main_win,
-            text='Delete Account',
-            font=Font,fg="white",
-            bg=Main_window_colour,
-            command= lambda : Delete_Data('Acc')).place(relx=0.8,rely = 0.89,relheight=0.1,relwidth=0.18)
+    # Create a 'Delete Account' button with a specified style and functionality
+    Button(Main_win, text='Delete Account', font=Font, fg="white", bg=Main_window_colour,
+           command=lambda: Delete_Data('Acc')).place(relx=0.8, rely=0.89, relheight=0.1, relwidth=0.18)
+
 
 Main_win = Tk()
 
@@ -441,18 +456,21 @@ Main_win.title("Secure Imaging Database")
 Main_win.geometry('1020x600+350+200')
 Main_win.configure(bg = Main_window_colour)
 
+# Side Panel
 Side_panel = Frame(Main_win,background = Side_panel_colour)
 Side_panel.place(x = 0,
                  y = 0,
                  relheight = 1,
                  relwidth = 0.23)
 
+# Shadow of Idea Panel
 Shadow = Frame(Main_win,background=Side_panel_colour)
 Shadow.place(relx = 0.257,
              rely = 0.117,
              relheight = 0.21,
              relwidth = 0.675)
 
+# Position of the GUI based on screen resolution
 X_disp = 840-(len(UName)*10)
 
 Label(Main_win,
@@ -521,12 +539,14 @@ image_label3 = Label(Side_panel,image = Logo,borderwidth = 0,highlightthickness 
 # Places logo on the top left hand corner
 image_label3.place(relx = 0.18,rely = 0.1)
 
+# Logo
 Label(Side_panel,
         text="Secure Imaging Database",
         font=("Bahnschrift Light",12),
         fg="white",
         bg=Side_panel_colour).place(relx=0.08,rely=0.05)
 
+# Upload Image Button
 Button(Side_panel,
         text='Upload Image',
         font=Font,fg="white",
@@ -536,6 +556,7 @@ Button(Side_panel,
                                         relheight=0.1,
                                         relwidth=0.7)
 
+# Download Image Button
 Button(Side_panel,
         text='Download Image',
         font=Font,fg="white",
