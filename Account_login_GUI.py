@@ -86,7 +86,8 @@ def Register():
                 connector.execute("INSERT INTO Acc_database (AccNAME, Pwd, AccType, Date_of_creation) VALUES (?,?,'Admin',datetime())",
                     (UName,Encrypt_Pwd(Pwd)))
                 connector.commit()
-            except:
+            except Exception  as e:
+                print(f"[Error] {e}")
                 mb.showerror("Error", "The username already exists")
                 return
             mb.showinfo("Success", "Registration successful")
@@ -100,7 +101,8 @@ def Register():
             connector.execute("INSERT INTO Acc_database (AccNAME, Pwd, Date_of_creation) VALUES (?,?,datetime())",
                 (UName,Encrypt_Pwd(Pwd)))
             connector.commit()
-        except:
+        except Exception  as e:
+            print(f"[Error] {e}")
             mb.showerror("Error", "The username already exists")
             return
         mb.showinfo("Success", "Registration successful")

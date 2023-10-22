@@ -15,13 +15,13 @@ These imports are highly specific. No wildcard imports were made.
 Eg: 'from pandas import *' or just 'import pandas')
 '''
 
-from os import getlogin,mkdir,startfile,remove,system
+from os import path,getlogin,mkdir,startfile,remove,system
 from sys import exit
 from random import randint
 from time import perf_counter
 from PIL import Image
 
-Debug_mode = False
+Debug_mode = True
 
 def Encrypt_Pwd(Password):
     '''
@@ -186,10 +186,8 @@ def Loading_image(Image_path):
     if "/" in Image_path:
         Image_path = Image_path.replace("/","\\")
     try:
-
-        F = Image_path.split("\\")[-1].split(".")[1]
         Delete = False
-        if F != "jpg":
+        if "jpg" not in Image_path:
             '''
             This program works only on jpg files and hence
             will convert any non-jpg files to a temp jpg image
@@ -200,13 +198,12 @@ def Loading_image(Image_path):
         im = Image.open(Image_path)
         start_time = perf_counter()
 
-    except:
-        print("The path of the image is invalid, please try again!")
+    except Exception as e:
+        print(f"[ERROR] {e}")
         if Debug_mode is True:
             print("\n",Image_path)
-        exit()
+
     NIP = Image_path
-    del F
 
 def Encode_img():
     global Delete,pix,im,m,n,Encoded,start_time,NIP
@@ -243,7 +240,7 @@ def Encode_img():
     Img_data+=("."+str(m)+"?"+str(n))
 
 
-    del m,n,i,j,tup,k,E,C
+    del tup,k,E,C
     '''
     Checking if there was a temp JPG image created
     in case the image was of a different format
@@ -254,7 +251,7 @@ def Encode_img():
 
     return Tell_time(start_time),Img_name,Img_data
 
-def Decode_data(Img_name,Encoded_inp):
+def Decode_data(Img_name,Encoded_inp,Upscale=None,Scale_Factor=None):
 
     # Starts the timer for processing
     start_time = perf_counter ()
@@ -297,8 +294,8 @@ def Decode_data(Img_name,Encoded_inp):
 
         # Gets dimensions data from Encoded_inp
         m,n = int(Dimension_lst[0]),int(Dimension_lst[1])
-    except:
-        print("\n[ERROR] Decryption Failed. Please verify file contents")
+    except Exception as e:
+        print(f"[ERROR] {e}")
         exit()
 
     del Encoded_inp
@@ -319,7 +316,8 @@ def Decode_data(Img_name,Encoded_inp):
                 # Assigns colour to pixel using xy co-ordinate data
                 image.putpixel((x, y), color)
         print("Image Generated succesfully")
-    except:
+    except Exception as e:
+        print(f"[ERROR] {e}")
         print("\n[ERROR] Image Generation Failed")
         if Debug_mode is True:
             print("\n",m,"x",n,"\n",index,"\n",Img_name)
@@ -328,25 +326,31 @@ def Decode_data(Img_name,Encoded_inp):
     del index,color,m,n
 
     #---------------------- Saving Image ----------------------
-    print("\nSaving Image...")
-    try:
-        Windows_user_name = getlogin()
-        path = f'C:\\Users\\{Windows_user_name}\\Downloads\\Pictures'
-        mkdir(path)
-        exit()
-    except:
-        pass
+
+    Path = f'C:\\Users\\{getlogin()}\\Downloads\\Pictures'
+
+    if not path.exists(Path):
+        mkdir(Path)
 
     try:
-        # Saves the generated image in the downloads
-        image.save(f'{path}\\{Img_name}.png')
-    except:
-        print("[ERROR] Image was not saved.")
+        if Upscale == True:
+            print("\nUpscaling Image...")
+            width, height = image.size
+            image = image.resize((width*Scale_Factor, height*Scale_Factor), Image.BICUBIC)
+            print("\nSaving Image...")
+            # Saves the generated image in the downloads
+            image.save(f'{Path}\\{Img_name}_Upscaled.png')
+        else:
+            print("\nSaving Image...")
+            # Saves the generated image in the downloads
+            image.save(f'{Path}\\{Img_name}.png')
+
+    except Exception as e:
+        print(f"[ERROR] {e}")
         exit()
     print("Image saved succesfully")
-##    startfile(f'{path}\\{Img_name}.png')
     Tell_time(start_time)
-    del image,Windows_user_name,path
+    del image,Path
     return
 
 def Tell_time(start_time):

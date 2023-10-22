@@ -17,7 +17,7 @@ Eg: 'from pandas import *' or just 'import pandas')
 
 from os import listdir
 from sys import exit
-from tkinter import Tk,ttk,Frame,Button,Label,END,BROWSE,W,YES,NO,INSERT
+from tkinter import Tk,ttk,Frame,Button,Label,END,BROWSE,W,YES,NO,INSERT,simpledialog
 from tkinter.filedialog import askopenfilename
 import tkinter.messagebox as mb
 import tkinter.scrolledtext as st
@@ -37,10 +37,10 @@ except:
     # Will exit if login window closed or couldn't fetch Username and Account type.
     exit()
 
-##UName,AccType = 'Meit','Admin'  # Set the username and account type (Temp)
+db_path = 'Image_database.db'
 
 # Connect to the database
-connector = sqlite3.connect('Image_database.db')
+connector = sqlite3.connect(db_path)
 cursor = connector.cursor()
 # Creates a table if it doesn't already exist
 connector.execute("""
@@ -116,12 +116,19 @@ def Display_records(view):
             tree.insert('', END, values=(i,records[1],Ac_type,records[4]))
         del i,data
 
-def Download_record():
+def Download_record(Upscale=None):
     # Shows an error if no item is selected
     if not tree.selection():
         mb.showerror('ERROR', 'Please select an item from the database')
         return
     else:
+        if Upscale == True:
+            newWin = Tk()
+            newWin.withdraw()
+            scale_factor = simpledialog.askinteger("Upscale Factor", "Enter Upscale factor (Whole Number):\n(Note: Higher values may take more CPU resources to compute)",parent=newWin)
+            newWin.destroy()
+        else:
+            scale_factor = None
         mb.showinfo('Info','The image will be downloaded after decode is performed.')
         current_item = tree.focus()
         values = tree.item(current_item)
@@ -136,10 +143,11 @@ def Download_record():
         del selection,connector,cursor,curr1,values,current_item
         try:
             # Decode the data and save the image
-            ED.Decode_data(Img_name,Data[0][0])
+            ED.Decode_data(Img_name,Data[0][0],Upscale,scale_factor)
             mb.showinfo('Info', 'Image saved successfully')
             return
-        except:
+        except Exception as e:
+            print(f'\n[ERROR] {e}')
             # Shows an error if decoding fails
             mb.showerror('ERROR', 'Error occured while decoding image. Please try again.')
             return
@@ -237,17 +245,20 @@ VALUES (?,?,?,?)""", (ID,Img_name,Img_data,UName))
                 connector.commit()
 
                 log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> Saved successfully")
-            except:
+            except Exception as e:
+                print(f"[ERROR] {e}")
                 # Shows an error if saving fails
                 log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] Save Failed")
 
-        except:
+        except Exception as e:
+            print(f"[ERROR] {e}")
             # Shows an error if encoding fails
             log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] Encoding failed")
-    except:
+    except Exception as e:
+        print(f"[ERROR] {e}")
         # Shows an error if the image path is invalid
         log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] The path of the image is invalid.")
-    tme,Img_name,Img_data = ED.Encode_img()
+
     return
 
 def Upload_gui_load():
@@ -352,15 +363,30 @@ def Download_gui_load():
             text='Download Image',
             font= Font,fg="white",
             bg= Main_window_colour,
-            command= lambda : Thread(target=Download_record).start()).place(relx=0.8,rely = 0.89,relheight=0.1,relwidth=0.18)
+            command= lambda : Thread(target=Download_record).start()).place(relx=0.62,rely = 0.89,relheight=0.1,relwidth=0.15)
+
+    # Download + Upscale Image Button
+    Button(Main_win,
+            text='Download + Upscale Image',
+            font= Font,fg="white",
+            bg= Main_window_colour,
+            command= lambda : Thread(target= lambda:Download_record(True)).start()).place(relx=0.78,rely = 0.89,relheight=0.1,relwidth=0.21)
+
+    Label(Main_win, text="-NEW-", font=("Gotham", 12), fg="white", bg=Main_window_colour).place(relx=0.93, rely=0.866)
+
+    # Delete Record Button
     Button(Main_win,
             text='Delete Record',
             font=Font,fg="white",
             bg=Main_window_colour,
-            command= lambda : Delete_Data('Dwnld')).place(relx=0.6,rely = 0.89,relheight=0.1,relwidth=0.18)
+            command= lambda : Delete_Data('Dwnld')).place(relx=0.46,rely = 0.89,relheight=0.1,relwidth=0.15)
 
     if AccType == 'Admin':
-        Button(Main_win, text='Clear All', font=Font,fg="white",bg=Main_window_colour,command= Clear_all).place(relx=0.4,rely = 0.89,relheight=0.1,relwidth=0.18)
+        Button(Main_win,
+                text='Clear All',
+                font=Font,fg="white",
+                bg=Main_window_colour,
+                command= Clear_all).place(relx=0.3,rely = 0.89,relheight=0.1,relwidth=0.15)
 
     global tree,Log_text
 
