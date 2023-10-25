@@ -79,24 +79,25 @@ def Encode(Nums):
     # Selects a random Key
     Key = randint(0,9)
 
+    pntr = 0
     for i in Nums:
         if i != "N":
             # Adds the key to the numeric value of the colour
-            pointer = int(i)+Key
-            if pointer >= 10:
+            pntr = int(i)+Key
+            if pntr >= 10:
                 # If it is greater than 10, it loops around.
-                pointer = pointer - 10
+                pntr = pntr - 10
 
 
             # Selecting one of the char lists
             Hash = randint(1,3)
 
             if Hash == 1:
-                Computed_nums_lst.append(l1[pointer])
+                Computed_nums_lst.append(l1[pntr])
             if Hash == 2:
-                Computed_nums_lst.append(l2[pointer])
+                Computed_nums_lst.append(l2[pntr])
             if Hash == 3:
-                Computed_nums_lst.append(l3[pointer])
+                Computed_nums_lst.append(l3[pntr])
         # Else condition where value of 'i' is "none"
         else:
             Hash = randint(1,3)
@@ -110,7 +111,7 @@ def Encode(Nums):
     for j in Computed_nums_lst:
         Computed_nums += j
 
-    del Hash,pointer,Nums,Computed_nums_lst,l1,l2,l3
+    del Nums,Computed_nums_lst,l1,l2,l3
 
     # Returns Key and Encoded colour data
     return Key,Computed_nums
@@ -134,27 +135,28 @@ def Decode(Hashed_str):
     Key = int(Hashed_str[0])
     # Checks index of the number in value
     Value = Hashed_str[1:4]
-
+    pntr = 0
+    
     for i in Value:
         if i in l1:
-            pointer = l1.index(i)
+            pntr = l1.index(i)
         if i in l2:
-            pointer = l2.index(i)
+            pntr = l2.index(i)
         if i in l3:
-            pointer = l3.index(i)
+            pntr = l3.index(i)
 
         # Subtracts using key to get real number
-        pointer -= Key
+        pntr -= Key
 
-        if pointer<0:
-            pointer+=10
+        if pntr<0:
+            pntr+=10
 
         # Checks for 'x','Y','=' which signify "none"
         if i not in ("x","Y","="):
-            decoded+=str(pointer)
+            decoded+=str(pntr)
 
     # Deleting un-used variables to save RAM
-    del Key,Value,pointer,l1,l2,l3
+    del Key,Value,pntr,l1,l2,l3
     # Returns decoded colour value
     return decoded
 
@@ -240,7 +242,7 @@ def Encode_img():
     Img_data+=("."+str(m)+"?"+str(n))
 
 
-    del tup,k,E,C
+    del tup,k,E,C  # type: ignore
     '''
     Checking if there was a temp JPG image created
     in case the image was of a different format
@@ -303,11 +305,12 @@ def Decode_data(Img_name,Encoded_inp,Upscale=None,Scale_Factor=None):
     #---------------------- Converting into an image ----------------------
     x,y=0,0
     print("File Decoded\n\nInitializing image generation...")
-
+    
+    # Creates a new image
+    image = Image.new('RGB', (m, n))
+    index = -1
     try:
-        # Creates a new image
-        image = Image.new('RGB', (m, n))
-        index = -1
+        # Time complexity = O(n^2)
         for x in range(m):
             for y in range(n):
                 index += 1
@@ -323,7 +326,7 @@ def Decode_data(Img_name,Encoded_inp,Upscale=None,Scale_Factor=None):
             print("\n",m,"x",n,"\n",index,"\n",Img_name)
         exit()
 
-    del index,color,m,n
+    del index,color,m,n  # type: ignore
 
     #---------------------- Saving Image ----------------------
 
@@ -336,7 +339,7 @@ def Decode_data(Img_name,Encoded_inp,Upscale=None,Scale_Factor=None):
         if Upscale == True:
             print("\nUpscaling Image...")
             width, height = image.size
-            image = image.resize((width*Scale_Factor, height*Scale_Factor), Image.BICUBIC)
+            image = image.resize((width*Scale_Factor, height*Scale_Factor), Image.BICUBIC) # type: ignore
             print("\nSaving Image...")
             # Saves the generated image in the downloads
             image.save(f'{Path}\\{Img_name}_Upscaled.png')

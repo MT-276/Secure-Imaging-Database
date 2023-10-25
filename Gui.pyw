@@ -42,10 +42,11 @@ db_path = 'Image_database.db'
 # Connect to the database
 connector = sqlite3.connect(db_path)
 cursor = connector.cursor()
+
 # Creates a table if it doesn't already exist
 connector.execute("""
 CREATE TABLE IF NOT EXISTS img_database
-(Img_ID INTEGER AUTO_INCREMENT PRIMARY KEY NOT NULL,
+(Img_ID INTEGER PRIMARY KEY,
 ImageNAME TEXT,
 DATA LONGTEXT,
 UserName VARCHAR(10),
@@ -57,7 +58,12 @@ connector.commit()
 '''
 FUNCTIONS :
 '''
+
 def Choose_File():
+    '''
+    Get the file path from user by opening an Explorer window
+    '''
+    
     # This gets the names of the threads currently running. If there is an ongoing encode, this will prevent another from starting.
     for thread in enumerate():
         if "Enc_cmd" in str(thread.name):
@@ -65,9 +71,9 @@ def Choose_File():
             return
     global filename
     while True:
-        # Open a file dialog to choose a file
+        # Open a Explorer window to choose a file
         filename = askopenfilename()
-        if filename == '': return
+        if filename == '': return # If the user closes the window without choosing a file, then do nothing.
         elif 'png' not in filename and 'jpg' not in filename:
             # Shows an error if the file type is not supported
             mb.showerror("ERROR","The file type is invalid. Only JPG and PNG images are supported")
@@ -76,9 +82,14 @@ def Choose_File():
     log_widget.insert(INSERT,f"{ED.Give_time_and_date()} >> File chosen - '{filename}'")
 
 def Display_records(view):
-    # Clear the treeview
+    '''
+    Shows the records in the database in a tabular form.
+    view :  1. Download
+            2. Accounts
+    '''
+    # Clear the table
     tree.delete(*tree.get_children())
-
+    
     # Fetch data from database according to view.
     if view == 'Download':
         # Fetching data from the db
@@ -92,14 +103,14 @@ def Display_records(view):
             if AccType != 'Admin' and records[4] == 'Deleted': continue
             i+=1
             if AccType == 'Admin':
-                # Insert the records into the treeview with user's name [UNLESS ADMIN]
+                # Insert the records into the table with user's name [UNLESS ADMIN]
                 if records[4] == None:
                     Status = '-'
                 else:
                     Status = 'Image Deleted by User'
                 tree.insert('', END, values=(i,records[1],records[3],Status))
             else:
-                # Insert the records into the treeview
+                # Insert the records into the table
                 tree.insert('', END, values=(i,records[1]))
 
     if view == 'Accounts':
@@ -107,29 +118,41 @@ def Display_records(view):
         curr = connector.execute('SELECT * From Acc_database')
         data = curr.fetchall()
         i = 0
+        # Display all the records in the database along with their date of register and account type
         for records in data:
             i+=1
             if records[3] == None:
                 Ac_type = ''
             else:
                 Ac_type = 'Admin'
+            # Insert the records into the table
             tree.insert('', END, values=(i,records[1],Ac_type,records[4]))
         del i,data
 
 def Download_record(Upscale=None):
+    '''
+    Initiates Decode and save of the image selected.
+    Upscale (optional) :    
+        1. True
+        2. None
+    When Upscale is True, the image will be decoded along with 
+    upscaling before saving to the downloads folder
+    '''
     # Shows an error if no item is selected
     if not tree.selection():
         mb.showerror('ERROR', 'Please select an item from the database')
         return
     else:
-        if Upscale == True:
+        if Upscale == True: # If user wantes to upscale, then ask the upscale factor.
             newWin = Tk()
             newWin.withdraw()
-            scale_factor = simpledialog.askinteger("Upscale Factor", "Enter Upscale factor (Whole Number):\n(Note: Higher values may take more CPU resources to compute)",parent=newWin)
+            scale_factor = simpledialog.askinteger("Upscale Factor", "Enter Upscale factor:\n(Note: Higher values may take more CPU resources to compute)",parent=newWin)
             newWin.destroy()
         else:
             scale_factor = None
         mb.showinfo('Info','The image will be downloaded after decode is performed.')
+        
+        # Get the name of the image from the table selection
         current_item = tree.focus()
         values = tree.item(current_item)
         selection = values["values"]
@@ -153,6 +176,13 @@ def Download_record(Upscale=None):
             return
 
 def Delete_Data(UI_Type):
+    '''
+    Deletes the data selected by the user.
+    UI_Type :   1. Dwnld
+                2. None
+    The UI type corresponds to which data is to be parsed and deleted from the database.
+    If None, then Accounts UI will be taken.
+    '''
     if not tree.selection():
         # Shows an error if no item is selected
         mb.showerror('ERROR!', 'Please select an item from the database')
@@ -186,34 +216,48 @@ WHERE ImageName = ? AND UserName = ? """, (selection[1],UName))
     else:
         if mb.askokcancel('Destructive Action - Delete Account',
             'Do you really want to do this ?\nThe Account will be deleted permanently') is True:   # Confirm with the user before deleting data
+            
+            # Get the data from the table
             current_item = tree.focus()
             values = tree.item(current_item)
             selection = values["values"]
+            
+            # Execute SQL to delete account from db
             connector.execute('DELETE FROM Acc_database WHERE AccNAME = ?', (selection[1],))
             connector.commit()
+            
+            # Refresh the Accounts UI table
             Display_records('Accounts')
             return
-        else:
+        else: # If user selects "no" for confirmation, then do nothing.
             return
 
 def Clear_all():
+    '''
+    Clears all the images in the database. (ONLY FOR ADMINS)
+    '''
     # Confirm with the user before clearing all data
     if mb.askokcancel('Destructive Action - Clear All',
         'Do you really want to do this ?\nThe Data will be deleted permanently') is True:
+        
         # Delete all records from the database
         connector.execute('DELETE FROM img_database;')
         connector.commit()
         mb.showinfo('Info', 'All the data has been erased.')
+        
+        # Refresh the Download UI table
         Display_records('Download')
-    else:
-        pass
+    else: return #  # If user selects "no" for confirmation, then do nothing.
 
 def Enc_cmd():
+    '''
+    Function for execution of Encode of the image file chosen.
+    '''
     log_widget.delete(2.0,END)
     if not 'filename' in globals():
         # Shows an error if no file has been chosen
         mb.showerror("ERROR","You have not yet entered the file path.")
-        return None
+        return # Do nothing. 
     log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> Loading image...")
 
     try:
@@ -226,50 +270,55 @@ def Enc_cmd():
             tme,Img_name,Img_data = ED.Encode_img()
 
             log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> Image Encoded")
-            log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >>{tme}")
+            log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >>{tme}") # Time utilised by CPU to encode the image (Time of Execution)
             log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> Saving data to database...")
 
             try:
-                connector = sqlite3.connect('Image_database.db')
+                # Connect to the database
+                connector = sqlite3.connect(db_path)
                 cursor = connector.cursor()
                 cursor.execute("select * from Img_database")
                 results = cursor.fetchall()
 
+                # Setting the ID of the image. 
                 if len(results) == 0:
                     ID = 1
                 else:
-                    ID = results[len(results)-1][0]+1
-                connector.execute("""
-INSERT INTO Img_database (Img_ID, ImageNAME, DATA, UserName)
-VALUES (?,?,?,?)""", (ID,Img_name,Img_data,UName))
+                    ID = results[len(results)-1][0]+1 # Adds 1 to whatever the last ID is of the record.
+                connector.execute(f"INSERT INTO Img_database VALUES ({ID},{Img_name},{Img_data},{UName},None)")
                 connector.commit()
 
-                log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> Saved successfully")
+                log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> Saved successfully.")
             except Exception as e:
                 print(f"[ERROR] {e}")
                 # Shows an error if saving fails
-                log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] Save Failed")
+                log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] Save Failed.")
 
         except Exception as e:
             print(f"[ERROR] {e}")
             # Shows an error if encoding fails
-            log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] Encoding failed")
+            log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] Encoding failed.")
     except Exception as e:
         print(f"[ERROR] {e}")
         # Shows an error if the image path is invalid
-        log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] The path of the image is invalid.")
+        log_widget.insert(INSERT,f"\n{ED.Give_time_and_date()} >> [ERROR] Image was not found.")
 
     return
 
 def Upload_gui_load():
     global mode
-    if mode == 'Upload':
-        return
+    # Check if the current mode is already set to 'Upload'. If yes, return and do nothing.
+    if mode == 'Upload': return 
+    
+    # Set the mode to 'Upload' to indicate that the user is in the upload section.
     mode = "Upload"
+    
+    # Define the insight text that provides an explanation of this section.
     Insight_text = """
     The program will automatically encode the image chosen with a special encoding
     algorithem. With which all your images will be secure.
     """
+    
     # Hider frame for Insight text
     Frame(Idea_panel,
             bg=Main_window_colour).place(relx=0,
@@ -290,6 +339,7 @@ def Upload_gui_load():
         fg="white",
         bg=Main_window_colour).place(relx=0.05,rely=0.1)
 
+    # Hides previous UI
     Frame(Main_win,
         background=Main_window_colour).place(relx=0.23,rely=0.34,relheight=1,relwidth=1)
     global Output_box,log_widget,Log_text
@@ -300,28 +350,31 @@ def Upload_gui_load():
     log_widget = st.ScrolledText(Output_box,font=Font,background="black",fg="White")
     log_widget.place(relx=0, rely=0.2, relheight=0.8, relwidth=1.04)
 
+    # If there is some log text of the previous log widget, then insert into the new one for a fluid transition.
     try:
         log_widget.insert(INSERT,Log_text)
         del Log_text
     except: pass
 
+    # Places text "Console Ouput"
     Label(Output_box,text= 'Console Output',font=Font,background="#7476A7").place(relx=0,rely=0)
 
+    # Choose Image Button
     Button(Main_win, text='Choose Image',
                 font=Font,fg="white",
                 bg=Main_window_colour,
                 command = Choose_File).place(relx=0.3, rely=0.41,relheight = 0.08,relwidth=0.4)
-    Button(Main_win, text='Encode!',
+    
+    # Upload Button
+    Button(Main_win, text='Upload',
                 font=Font,fg="white",
                 bg=Main_window_colour,
                 command = lambda : Thread(target=Enc_cmd).start()).place(relx=0.8, rely=0.41,relheight = 0.08,relwidth=0.15)
 
 def Download_gui_load():
-    global mode     # Declares 'mode' as a global variable.
-
+    global mode
     # Check if the current mode is already set to 'Download'. If yes, return and do nothing.
-    if mode == 'Download':
-        return
+    if mode == 'Download': return
 
     # Set the mode to 'Download' to indicate that the user is in the download section.
     mode = "Download"
@@ -348,15 +401,8 @@ def Download_gui_load():
         fg="white",
         bg=Main_window_colour).place(relx=0.05,rely=0.1)
 
-    # Hider Frame
+    # Hides previous UI
     Frame(Main_win,background=Main_window_colour).place(relx=0.23,rely=0.34,relheight=1,relwidth=1)
-
-    ''' Search Function (Incomplete)
-    Button(Main_win, text='Search', font=Font,fg="white",bg=Main_window_colour,command = Display_records).place(relx=0.8,y=230,relheight=0.06,relwidth=0.1)
-
-    Key_word = ""
-    Entry(Main_win, textvariable=Key_word, font=("Bahnschrift Light",18)).place(relx=0.26,y=230,relheight=0.06,relwidth=0.4)
-    '''
 
     # Download Image Button
     Button(Main_win,
@@ -381,6 +427,7 @@ def Download_gui_load():
             bg=Main_window_colour,
             command= lambda : Delete_Data('Dwnld')).place(relx=0.46,rely = 0.89,relheight=0.1,relwidth=0.15)
 
+    # Clear All Button [ADMIN ONLY]
     if AccType == 'Admin':
         Button(Main_win,
                 text='Clear All',
@@ -390,6 +437,7 @@ def Download_gui_load():
 
     global tree,Log_text
 
+    # If user is Admin, then also show status and the username of the record saved by.
     if AccType == 'Admin':
         tree = ttk.Treeview(Main_win,height = 100,selectmode=BROWSE,columns=('Sr_No','Name','UserName','Status'))
         tree.heading('UserName', text='UserName',anchor=W)
@@ -407,17 +455,20 @@ def Download_gui_load():
     tree.column('#0', width = 0,stretch = NO)
     tree.column('#1', width = 40,stretch = YES)
 
+    # Place the Treeview widget on the main window
     tree.place(relx = 0.26,y = 280,relheight = 0.37,relwidth = 0.6)
+    
     Display_records('Download')
+    
+    # Gets the log text of the Upload UI so that later it can be inserted back for a fluid transition.
     try:Log_text= log_widget.get("1.0",END)
-    except:
-        pass
+    except: pass
 
 def Accounts_UI():
     '''
-    This function represents the user interface for handling accounts in the application.
+    Separate UI to show accounts. [ONLY ADMINS]
     '''
-    global mode  # Declares 'mode' as a global variable.
+    global mode  
 
     # Check if the current mode is already set to 'Accounts'. If yes, return and do nothing.
     if mode == 'Accounts':
@@ -433,33 +484,42 @@ def Accounts_UI():
     """
 
     # Hider frame for Insight text
-    Frame(Idea_panel, bg=Main_window_colour).place(relx=0, rely=0.45, relheight=1, relwidth=1)
+    Frame(Idea_panel, 
+          bg=Main_window_colour).place(relx=0, rely=0.45, relheight=1, relwidth=1)
 
     # Places Insight text on the Idea_panel
-    Label(Idea_panel, text=Insight_text, font=("Bahnschrift Light", 12), fg="white", bg=Main_window_colour).place(relx=0.1, rely=0.3)
+    Label(Idea_panel, 
+          text=Insight_text, 
+          font=("Bahnschrift Light", 12), 
+          fg="white", 
+          bg=Main_window_colour).place(relx=0.1, rely=0.3)
 
     # Places the text 'Insight'
-    Label(Idea_panel, text="Insight", font=("Bahnschrift Bold", 20), fg="white", bg=Main_window_colour).place(relx=0.05, rely=0.1)
+    Label(Idea_panel, 
+          text="Insight", 
+          font=("Bahnschrift Bold", 20), 
+          fg="white",
+          bg=Main_window_colour).place(relx=0.05, rely=0.1)
 
-    # Create a frame for the main window with a specified background color
+    # Hides previous UI
     Frame(Main_win, background=Main_window_colour).place(relx=0.23, rely=0.34, relheight=1, relwidth=1)
 
-    global tree  # Declares 'tree' as a global variable
+    global tree  
     # Create a Treeview widget for displaying data with specified columns
     tree = ttk.Treeview(Main_win, height=100, selectmode=BROWSE, columns=('Sr_No', 'Name', 'Acc type', 'Date created'))
 
     # Set column headings and their alignment
     tree.heading('Sr_No', text='Sr_No', anchor=W)
-    tree.column('#0', width=0, stretch=NO)  # Adjust column width
+    tree.column('#0', width=0, stretch=NO)  
 
     tree.heading('Name', text='Name', anchor=W)
-    tree.column('#1', width=40, stretch=YES)  # Adjust column width
+    tree.column('#1', width=40, stretch=YES)  
 
     tree.heading('Acc type', text='Acc type', anchor=W)
-    tree.column('#2', width=40, stretch=YES)  # Adjust column width
+    tree.column('#2', width=40, stretch=YES)  
 
     tree.heading('Date created', text='Date created', anchor=W)
-    tree.column('#3', width=40, stretch=YES)  # Adjust column width
+    tree.column('#3', width=40, stretch=YES)  
 
     # Place the Treeview widget on the main window
     tree.place(relx=0.26, y=280, relheight=0.37, relwidth=0.6)
@@ -467,9 +527,13 @@ def Accounts_UI():
     # Display records of 'Accounts' in the Treeview
     Display_records('Accounts')
 
-    # Create a 'Delete Account' button with a specified style and functionality
-    Button(Main_win, text='Delete Account', font=Font, fg="white", bg=Main_window_colour,
-           command=lambda: Delete_Data('Acc')).place(relx=0.8, rely=0.89, relheight=0.1, relwidth=0.18)
+    # Delete Account Button
+    Button(Main_win, 
+           text='Delete Account', 
+           font=Font, 
+           fg="white", 
+           bg=Main_window_colour,
+           command=lambda: Delete_Data(None)).place(relx=0.8, rely=0.89, relheight=0.1, relwidth=0.18)
 
 
 Main_win = Tk()
@@ -499,6 +563,7 @@ Shadow.place(relx = 0.257,
 # Position of the GUI based on screen resolution
 X_disp = 840-(len(UName)*10)
 
+# Welcome text for the user
 Label(Main_win,
             text='Welcome {0}'.format(UName),
             font=("Bahnschrift Bold",16),
@@ -603,5 +668,6 @@ if AccType == 'Admin':
                                             relheight=0.1,
                                             relwidth=0.7)
 
+# Set the mode to 'Home' to indicate that the user is in the home section.
 mode = 'Home'
 Main_win.mainloop()
