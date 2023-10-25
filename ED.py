@@ -21,7 +21,7 @@ from random import randint
 from time import perf_counter
 from PIL import Image
 
-Debug_mode = True
+Debug_mode = False
 
 def Encrypt_Pwd(Password):
     '''
@@ -88,7 +88,6 @@ def Encode(Nums):
                 # If it is greater than 10, it loops around.
                 pntr = pntr - 10
 
-
             # Selecting one of the char lists
             Hash = randint(1,3)
 
@@ -111,7 +110,7 @@ def Encode(Nums):
     for j in Computed_nums_lst:
         Computed_nums += j
 
-    del Nums,Computed_nums_lst,l1,l2,l3
+    del Hash,pntr,Nums,Computed_nums_lst,l1,l2,l3 # type: ignore
 
     # Returns Key and Encoded colour data
     return Key,Computed_nums
@@ -136,7 +135,7 @@ def Decode(Hashed_str):
     # Checks index of the number in value
     Value = Hashed_str[1:4]
     pntr = 0
-    
+
     for i in Value:
         if i in l1:
             pntr = l1.index(i)
@@ -305,7 +304,7 @@ def Decode_data(Img_name,Encoded_inp,Upscale=None,Scale_Factor=None):
     #---------------------- Converting into an image ----------------------
     x,y=0,0
     print("File Decoded\n\nInitializing image generation...")
-    
+
     # Creates a new image
     image = Image.new('RGB', (m, n))
     index = -1
