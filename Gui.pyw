@@ -74,7 +74,7 @@ def Choose_File():
         # Open a Explorer window to choose a file
         filename = askopenfilename()
         if filename == '': return # If the user closes the window without choosing a file, then do nothing.
-        elif 'png' not in filename and 'jpg' not in filename:
+        elif 'png' not in filename.lower() and 'jpg' not in filename.lower():
             # Shows an error if the file type is not supported
             mb.showerror("ERROR","The file type is invalid. Only JPG and PNG images are supported")
         else: break

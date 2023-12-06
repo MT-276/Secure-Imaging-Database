@@ -298,7 +298,6 @@ def Decode_data(Img_name,Encoded_inp,Upscale=None,Scale_Factor=None):
     except Exception as e:
         print(f"[ERROR] {e}")
         exit()
-
     del Encoded_inp
 
     #---------------------- Converting into an image ----------------------
@@ -356,13 +355,15 @@ def Decode_data(Img_name,Encoded_inp,Upscale=None,Scale_Factor=None):
     return
 
 def Tell_time(start_time):
-    end_time = perf_counter ()
-    ao = (end_time - start_time)//1
-    if ao>=60:
-        ao = str(ao//60) +" Min " + str(ao%60)
-    del end_time
     # Calculates and prints the time taken for execution of the program
-    return " Time for execution : "+str(int(ao))+ " Sec"
+    end_time = perf_counter ()
+    ao = (end_time - start_time)
+    if ao > 60:
+        ao = f"{ao//60} mins {ao%60} seconds"
+    else:
+        ao = f"{int(ao)} secs"
+
+    return f" Time for execution : {ao}"
 
 def Give_time_and_date():
     """
