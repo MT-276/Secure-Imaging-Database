@@ -20,6 +20,7 @@ from sys import exit
 from random import randint
 from time import perf_counter
 from PIL import Image
+from functools import cache
 
 Debug_mode = False
 
@@ -37,6 +38,7 @@ def Encrypt_Pwd(Password):
         Encrypted_Password += str(bin(ord(i))[2:]) + ' '
     return Encrypted_Password
 
+@cache
 def Decrypt_Pwd(Encrypted_Password):
     '''
     Explanation of chr(int(j, 2)):
@@ -115,6 +117,7 @@ def Encode(Nums):
     # Returns Key and Encoded colour data
     return Key,Computed_nums
 
+@cache
 def Decode(Hashed_str):
     '''
     This function will decode each singular encoded
