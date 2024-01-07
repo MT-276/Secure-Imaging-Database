@@ -1,6 +1,6 @@
 # Secure Imaging Database
 
-Welcome to the Secure Imaging Database project! This open-source project aims to provide a secure and efficient solution for storing and managing medical imaging data.
+Welcome to the Secure Imaging Database project! This project aims to provide a secure and efficient solution for storing and managing sensitive imaging data.
 
 ## Table of Contents
 
@@ -8,21 +8,22 @@ Welcome to the Secure Imaging Database project! This open-source project aims to
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Contributing](#contributing)
+- [About](#about)
 - [License](#license)
 
 ## Introduction
 
-The Secure Imaging Database is designed to address the challenges of securely storing and accessing medical imaging data. It provides a user-friendly interface for managing patient records, uploading and viewing images, and ensuring data privacy and security.
+The Secure Imaging Database is designed to address the challenges of securely storing and accessing sensitive imaging data. It provides a user-friendly interface for managing image records, uploading and viewing images, and ensuring data privacy and security.
 
 ## Features
 
-- Secure storage of medical imaging data
+- Secure storage of sensitive imaging data
 - User authentication and access control
-- Intuitive user interface for managing patient records
-- Efficient search and retrieval of images
-- Integration with existing hospital information systems
-- Scalable architecture to handle large volumes of data
+- Intuitive user interface for\
+      (1) Managing sensitive records\
+      (2) Uploading images
+- _**[NEW]**_ Option to upscale images while downloading 
+- Feature to manage users [Admin only]
 
 ## Installation
 
@@ -30,32 +31,26 @@ To install and run the Secure Imaging Database, follow these steps:
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/your-username/Secure-Imaging-Database.git
+    git clone https://github.com/MT-276/Secure-Imaging-Database.git
     ```
 
-2. Install the required dependencies:
+2. Install the required dependency:
     ```bash
-    pip install -r requirements.txt
+    pip install Pillow
     ```
-
-3. Configure the database connection in `config.py`.
 
 4. Start the application:
     ```bash
-    python app.py
+    python Gui.pyw
     ```
 
 ## Usage
 
-Once the application is running, you can access it by navigating to `http://localhost:5000` in your web browser. From there, you can create an account, log in, and start managing patient records and medical images.
+Once the application is running, you can create an account, log in, and start managing records and sesitive images.
 
-## Contributing
+## About
 
-We welcome contributions from the open-source community to make the Secure Imaging Database even better. To contribute, please follow these guidelines:
-
-1. Fork the repository and create a new branch.
-2. Make your changes and ensure they are properly tested.
-3. Submit a pull request with a clear description of your changes.
+This is my Class 12 Computer Science project and is not meant to be implemented for commercial use.
 
 ## License
 
