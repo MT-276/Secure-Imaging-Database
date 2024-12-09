@@ -22,7 +22,7 @@ from PIL import ImageTk, Image
 from ED import Encrypt_Pwd
 global AccType, Font, Password, Pwd, UName, Username
 
-Allow_Bypass = True
+Allow_Bypass = False
 Set_Admin_Password = 'pwd1212'
 
 Font = ("Bahnschrift Bold", 12)
@@ -137,7 +137,7 @@ def Login_UI():
     image_path = "./Assets/Acc_img_Login.png"
     image = Image.open(image_path)
     new_size = (100, 100)
-    image = image.resize(new_size, Image.ANTIALIAS)
+    image = image.resize(new_size, Image.LANCZOS)
     photo = ImageTk.PhotoImage(image)
     image_label = Label(Frame_, image=photo, borderwidth=0, highlightthickness=0)
     image_label.image = photo
@@ -211,7 +211,7 @@ def Register_UI():
     image_path = "./Assets/Acc_img_Register.png"
     image = Image.open(image_path)
     new_size = (100, 100)
-    image = image.resize(new_size, Image.ANTIALIAS)
+    image = image.resize(new_size, Image.LANCZOS)
     photo = ImageTk.PhotoImage(image)
     image_label = Label(Frame_,
             image=photo,
